@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}IVIA Monitor{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-7 mb-4 mb-lg-0">
+            <h1 class="display-4 fw-bold mb-4 lh-1">
+                Monitor de <span class="text-primary">Dispositivos</span><br>
+                Análisis de Fruta IVIA
+            </h1>
+            <p class="lead mb-4 text-muted">
+                Dashboard centralizado para todos los dispositivos de análisis post-recolección.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Cards (placeholder) -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 text-center p-4">
+                <i class="bi bi-cpu-fill display-3 text-primary mb-3 opacity-75"></i>
+                <h3 class="fw-bold text-primary mb-1">12</h3>
+                <p class="text-muted mb-0">Dispositivos</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 text-center p-4">
+                <i class="bi bi-activity display-3 text-success mb-3 opacity-75"></i>
+                <h3 class="fw-bold text-success mb-1">1,247</h3>
+                <p class="text-muted mb-0">Lecturas hoy</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 text-center p-4">
+                <i class="bi bi-thermometer-half display-3 text-warning mb-3 opacity-75"></i>
+                <h3 class="fw-bold text-warning mb-1">23.4°C</h3>
+                <p class="text-muted mb-0">Temperatura media</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 text-center p-4">
+                <i class="bi bi-clock display-3 text-info mb-3 opacity-75"></i>
+                <h3 class="fw-bold text-info mb-1">2 min</h3>
+                <p class="text-muted mb-0">Última actualización</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="bi bi-list-nested me-2 text-primary"></i>Dispositivos activos
+                    </h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-circle-fill text-success me-2"></i> POT-001 Naranjas cosecha #00123</li>
+                        <li class="mb-2"><i class="bi bi-circle-fill text-success me-2"></i> POT-002 Naranjas cosecha #00124</li>
+                        <li class="mb-2"><i class="bi bi-circle-fill text-warning me-2"></i> POT-003 Naranjas cosecha #00124</li>
+                    </ul>
+                    <a href="{% url 'devices:list' %}" class="btn btn-outline-primary mt-2">Ver todos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="bi bi-graph-up me-2 text-success"></i>Últimas lecturas
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Dispositivo</th>
+                                    <th>Temp</th>
+                                    <th>Humedad</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>POT-001</td>
+                                    <td><span class="badge bg-info">23.4°C</span></td>
+                                    <td>65%</td>
+                                    <td><span class="badge bg-success">Normal</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-shadow-lg:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important; }
+</style>
+{% endblock %}

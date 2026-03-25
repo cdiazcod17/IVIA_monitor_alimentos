@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Dispositivos{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold mb-1">Dispositivos</h1>
+            <p class="lead text-muted mb-0">{{ devices|length }} totales</p>
+        </div>
+
+        <div>
+            <a href="{% url 'devices:add' %}" class="btn btn-primary">
+                Personalizar dispositivo
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for item in devices %}
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="{% url 'devices:detail' item.device.device_id %}" class="text-decoration-none">
+                <div class="card h-100 border-0 shadow-sm hover-shadow-lg transition-all">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 flex-shrink-0">
+                                <i class="bi bi-cpu-fill text-primary fs-4"></i>
+                            </div>
+
+                            <div class="flex-grow-1 min-width-0">
+                                <h5 class="card-title fw-bold mb-1">
+                                    {% if item.user_device and item.user_device.alias %}
+                                        {{ item.user_device.alias }}
+                                    {% else %}
+                                        {{ item.device.default_name }}
+                                    {% endif %}
+                                </h5>
+
+                                <small class="text-muted mb-1 d-block">
+                                    ID: {{ item.device.device_id }}
+                                </small>
+
+                                <small class="text-muted d-block">
+                                    {{ item.device.location|default:"Sin ubicación" }}
+                                </small>
+
+                                {% if item.user_device and item.user_device.food_name %}
+                                <small class="text-primary d-block mt-1">
+                                    Alimento: {{ item.user_device.food_name }}
+                                </small>
+                                {% endif %}
+                            </div>
+
+                            <span class="badge ms-2 {% if item.device.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ item.device.is_active|yesno:"Activo,Inactivo" }}
+                            </span>
+                        </div>
+
+                        <div class="border-top pt-3">
+                            {% if item.latest %}
+                                <small class="text-muted d-block">Última lectura: {{ item.latest.timestamp }}</small>
+                                <small class="text-muted d-block">Temp: {{ item.latest.temperature|default:"-" }} °C</small>
+                                <small class="text-muted d-block">Humedad: {{ item.latest.humidity|default:"-" }} %</small>
+                            {% else %}
+                                <small class="text-muted d-block">Sin lecturas disponibles</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-end align-items-end mt-3">
+                            <small class="text-primary fw-semibold">Ver datos →</small>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-cpu display-1 text-muted mb-4 opacity-50"></i>
+            <h3 class="text-muted mb-3">Sin dispositivos</h3>
+            <p class="text-muted lead mb-4">No hay dispositivos activos para mostrar</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.hover-shadow-lg { transition: all 0.2s ease; }
+.hover-shadow-lg:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important; }
+.transition-all { transition: all 0.2s ease-in-out; }
+</style>
+{% endblock %}
