@@ -1,18 +1,24 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-
+from django.contrib import messages
 from .models import Device, UserDevice
 from .services import get_sensor_data, get_latest_reading
 
 @login_required
 def device_list(request):
-    devices = Device.objects.filter(is_active=True).order_by('device_id')
-
-    user_links = {
-        link.device_id: link
-        for link in UserDevice.objects.filter(user=request.user).select_related('device')
-    }
-
+    # Filtro por GET
+    status_filter = request.GET.get('status', 'active')
+    
+    devices = Device.objects.all().order_by('device_id')
+    
+    if status_filter == 'inactive':
+        devices = devices.filter(is_active=False)
+    elif status_filter == 'active':
+        devices = devices.filter(is_active=True)
+    
+    # Resto igual...
+    user_links = {link.device_id: link for link in UserDevice.objects.filter(user=request.user)}
+    
     devices_with_data = []
     for device in devices:
         devices_with_data.append({
@@ -20,10 +26,16 @@ def device_list(request):
             'user_device': user_links.get(device.id),
             'latest': get_latest_reading(device.device_id),
         })
+    
+    context = {
+        'devices': devices_with_data,
+        'status_filter': status_filter,  # Para mantener activo el botón
+        'total_active': Device.objects.filter(is_active=True).count(),
+        'total_inactive': Device.objects.filter(is_active=False).count(),
+    }
+    return render(request, 'devices/list.html', context)
 
-    return render(request, 'devices/list.html', {
-        'devices': devices_with_data
-    })
+
 @login_required
 def device_add(request):
     devices = Device.objects.filter(is_active=True).order_by('device_id')
@@ -73,3 +85,15 @@ def device_detail(request, device_id):
         'user_device': user_device,
         'sensor_data': sensor_data,
     })
+@login_required
+def device_disable(request):
+    if request.method != 'POST':
+        return redirect('devices:list')
+    
+    device_id = request.POST.get('device_id')
+    device = get_object_or_404(Device, device_id=device_id)
+    device.is_active = False
+    device.save()
+    messages.success(request, f'Dispositivo {device.default_name} desactivado')
+    return redirect('devices:list')
+    
