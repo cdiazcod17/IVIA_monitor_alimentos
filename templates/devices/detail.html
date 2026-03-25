@@ -109,7 +109,7 @@
                             <tbody>
                                 {% for reading in sensor_data %}
                                 <tr>
-                                    <td>{{ reading.timeData }}</td>
+                                    <td>{{ reading.dateData }}</td>
                                     <td><span class="badge bg-info">{{ reading.temperature }}</span></td>
                                     <td>{{ reading.humidity }}</td>
                                     <td>{{ reading.co2|default:"-" }}</td>

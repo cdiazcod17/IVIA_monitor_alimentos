@@ -58,7 +58,7 @@
 
                         <div class="border-top pt-3">
                             {% if item.latest %}
-                                <small class="text-muted d-block">Última lectura: {{ item.latest.timestamp }}</small>
+                                <small class="text-muted d-block">Última lectura: {{ item.latest.dateData }}</small>
                                 <small class="text-muted d-block">Temp: {{ item.latest.temperature|default:"-" }} °C</small>
                                 <small class="text-muted d-block">Humedad: {{ item.latest.humidity|default:"-" }} %</small>
                             {% else %}
