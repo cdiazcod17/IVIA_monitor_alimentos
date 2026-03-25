@@ -7,7 +7,7 @@ from .services import get_sensor_data, get_latest_reading
 @login_required
 def device_list(request):
     # Filtro por GET
-    status_filter = request.GET.get('status', 'active')
+    status_filter = request.GET.get('status', 'all')
     
     devices = Device.objects.all().order_by('device_id')
     
@@ -96,4 +96,15 @@ def device_disable(request):
     device.save()
     messages.success(request, f'Dispositivo {device.default_name} desactivado')
     return redirect('devices:list')
+
+@login_required
+def device_enable(request):
+    if request.method != 'POST':
+        return redirect('devices:list')
     
+    device_id = request.POST.get('device_id')
+    device = get_object_or_404(Device, device_id=device_id)
+    device.is_active = True
+    device.save()
+    messages.success(request, f'Dispositivo {device.default_name} Activado')
+    return redirect('devices:list')

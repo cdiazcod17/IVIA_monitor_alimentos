@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container py-5">
-    <!-- Header con filtros -->
+    <!--filtros -->
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
             <h1 class="display-5 fw-bold mb-1">Dispositivos</h1>
@@ -14,7 +14,6 @@
         </div>
 
         <div class="d-flex gap-2 align-items-center">
-            <!-- Filtros -->
             <div class="btn-group" role="group">
                 <a href="{% url 'devices:list' %}?status=active" 
                    class="btn btn-outline-primary 
@@ -39,14 +38,12 @@
         </div>
     </div>
 
-    <!-- Lista dispositivos -->
     <div class="row g-4">
         {% for item in devices %}
         <div class="col-xl-3 col-lg-4 col-md-6">
             <a href="{% url 'devices:detail' item.device.device_id %}" class="text-decoration-none">
                 <div class="card h-100 border-0 shadow-sm hover-shadow-lg transition-all">
                     <div class="card-body p-4">
-                        <!-- Icono y datos -->
                         <div class="d-flex align-items-start mb-3">
                             <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 flex-shrink-0">
                                 <i class="bi bi-cpu-fill text-primary fs-4"></i>
@@ -88,7 +85,17 @@
                                     <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
                                     <button type="submit" class="btn btn-sm btn-danger px-2 py-1" 
                                             style="font-size: 0.8em;"
-                                            onclick="return confirm('¿Desactivar {{ item.device.default_name }}?')">
+                                            onclick="return confirm('¿Desactivar Dispositivo?')">
+                                        <i class="bi bi-power"></i>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{% url 'devices:enable' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
+                                    <button type="submit" class="btn btn-sm btn-success px-2 py-1" 
+                                            style="font-size: 0.8em;"
+                                            onclick="return confirm('¿Activar Dispositivo?')">
                                         <i class="bi bi-power"></i>
                                     </button>
                                 </form>
