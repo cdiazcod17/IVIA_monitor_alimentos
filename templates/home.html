@@ -21,7 +21,7 @@
         <div class="col-md-3">
             <div class="card border-0 shadow-sm h-100 text-center p-4">
                 <i class="bi bi-cpu-fill display-3 text-primary mb-3 opacity-75"></i>
-                <h3 class="fw-bold text-primary mb-1">12</h3>
+                <h3 class="fw-bold text-primary mb-1">10</h3>
                 <p class="text-muted mb-0">Dispositivos</p>
             </div>
         </div>
@@ -48,7 +48,7 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    {% comment %} <!-- Quick Actions -->
     <div class="row g-4">
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">
@@ -94,9 +94,17 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> {% endcomment %}
 </div>
-
+ <!-- Footer minimal -->
+    <footer class="border-t border-slate-200 bg-white/50 backdrop-blur-sm">
+        <div class="max-w-4xl mx-auto px-6 py-8 text-center text-xs text-slate-500">
+            © 2026 IVIA - Instituto Valenciano de Investigaciones Agrarias
+            <span class="mx-2">•</span>
+            <a href="https://ivia.gva.es/es/" class="hover:text-ivia-blue font-medium">ivia.gva.es</a>
+            <p>Departamento de Agro Ingenieria</p>
+        </div>
+    </footer>
 <style>
 .hover-shadow-lg:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important; }
 </style>
