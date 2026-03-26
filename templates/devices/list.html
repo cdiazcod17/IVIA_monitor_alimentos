@@ -86,17 +86,17 @@
                                     <button type="submit" class="btn btn-sm btn-danger px-2 py-1" 
                                             style="font-size: 0.8em;"
                                             onclick="return confirm('¿Desactivar Dispositivo?')">
-                                        <i class="bi bi-power"></i>
+                                        <span class="badge p-1"><i class="bi bi-power"></i>Desactivar</span>
                                     </button>
                                 </form>
                                 {% else %}
                                 <form method="post" action="{% url 'devices:enable' %}" class="d-inline">
                                     {% csrf_token %}
                                     <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                    <button type="submit" class="btn btn-sm btn-success px-2 py-1" 
+                                    <button type="submit" class="btn btn-sm btn-success px-2 py-1 w-100" 
                                             style="font-size: 0.8em;"
                                             onclick="return confirm('¿Activar Dispositivo?')">
-                                        <i class="bi bi-power"></i>
+                                        <span class="badge p-1"><i class="bi bi-power"></i>Activar</span>
                                     </button>
                                 </form>
                                 {% endif %}
