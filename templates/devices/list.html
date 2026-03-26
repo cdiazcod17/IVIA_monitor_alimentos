@@ -62,7 +62,7 @@
                                 </h5>
 
                                 <small class="text-muted mb-1 d-block">
-                                    ID: {{ item.device.device_id }}
+                                    Dispositivo: {{ item.device.device_id }}
                                 </small>
 
                                 <small class="text-muted">
@@ -127,9 +127,11 @@
                         </div>
 
                         <!-- Flecha -->
+                         {% if item.device.is_active %}
                         <div class="d-flex justify-content-end align-items-end mt-3">
                             <small class="text-primary fw-semibold">Ver datos →</small>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </a>

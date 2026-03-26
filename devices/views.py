@@ -16,7 +16,6 @@ def device_list(request):
     elif status_filter == 'active':
         devices = devices.filter(is_active=True)
     
-    # Resto igual...
     user_links = {link.device_id: link for link in UserDevice.objects.filter(user=request.user)}
     
     devices_with_data = []
@@ -77,7 +76,7 @@ def device_detail(request, device_id):
         user=request.user,
         device=device
     ).first()
-
+    
     sensor_data = get_sensor_data(device.device_id)
 
     return render(request, 'devices/detail.html', {
