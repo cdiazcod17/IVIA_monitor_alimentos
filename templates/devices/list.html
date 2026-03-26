@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container py-5">
-    <!--filtros -->
+    <!-- Filtros -->
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
             <h1 class="display-5 fw-bold mb-1">Dispositivos</h1>
@@ -38,6 +38,7 @@
         </div>
     </div>
 
+    <!-- Lista dispositivos -->
     <div class="row g-4">
         {% for item in devices %}
         <div class="col-xl-3 col-lg-4 col-md-6">
@@ -45,10 +46,12 @@
                 <div class="card h-100 border-0 shadow-sm hover-shadow-lg transition-all">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-start mb-3">
+                            <!-- Icono izquierda -->
                             <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 flex-shrink-0">
                                 <i class="bi bi-cpu-fill text-primary fs-4"></i>
                             </div>
 
+                            <!-- Info centro -->
                             <div class="flex-grow-1 min-width-0">
                                 <h5 class="card-title fw-bold mb-1">
                                     {% if item.user_device and item.user_device.alias %}
@@ -73,33 +76,36 @@
                                 {% endif %}
                             </div>
 
-                            <!-- Status y botón desactivar -->
-                            <div class="ms-2">
-                                <span class="badge mb-1 d-block {% if item.device.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-                                    {{ item.device.is_active|yesno:"🟢 Activo,🔴 Inactivo" }}
-                                </span>
-                                
-                                {% if item.device.is_active %}
-                                <form method="post" action="{% url 'devices:disable' %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                    <button type="submit" class="btn btn-sm btn-danger px-2 py-1" 
-                                            style="font-size: 0.8em;"
-                                            onclick="return confirm('¿Desactivar Dispositivo?')">
-                                        <span class="badge p-1"><i class="bi bi-power"></i>Desactivar</span>
-                                    </button>
-                                </form>
-                                {% else %}
-                                <form method="post" action="{% url 'devices:enable' %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                    <button type="submit" class="btn btn-sm btn-success px-2 py-1 w-100" 
-                                            style="font-size: 0.8em;"
-                                            onclick="return confirm('¿Activar Dispositivo?')">
-                                        <span class="badge p-1"><i class="bi bi-power"></i>Activar</span>
-                                    </button>
-                                </form>
-                                {% endif %}
+                            <!-- Status y botón DERECHA -->
+                            <div class="ms-auto">
+                                <div class="d-flex flex-column gap-1">
+                                    <!-- Badge status -->
+                                    <span class="badge fs-6 fw-semibold px-2 py-1 mb-1 
+                                                 {% if item.device.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ item.device.is_active|yesno:"🟢 Activo,🔴 Inactivo" }}
+                                    </span>
+                                    
+                                    <!-- Botón acción -->
+                                    {% if item.device.is_active %}
+                                    <form method="post" action="{% url 'devices:disable' %}" class="d-inline-block w-100">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
+                                        <button type="submit" class="btn btn-danger btn-action w-100 h-100" 
+                                                onclick="return confirm('¿Desactivar {{ item.device.default_name }}?')">
+                                            <i class="bi bi-power me-1"></i>OFF
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="post" action="{% url 'devices:enable' %}" class="d-inline-block w-100">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
+                                        <button type="submit" class="btn btn-success btn-action w-100 h-100" 
+                                                onclick="return confirm('¿Activar {{ item.device.default_name }}?')">
+                                            <i class="bi bi-power me-1"></i>ON
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
 
@@ -138,21 +144,8 @@
     </div>
 </div>
 
-<style>
-.hover-shadow-lg { 
-    transition: all 0.2s ease; 
-}
-.hover-shadow-lg:hover { 
-    transform: translateY(-4px); 
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important; 
-}
-.transition-all { 
-    transition: all 0.2s ease-in-out; 
-}
-</style>
-
 <script>
-// Mantener scroll en filtros
+// Scroll suave a filtros
 window.addEventListener('load', function() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('status')) {
