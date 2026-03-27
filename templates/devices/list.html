@@ -136,10 +136,11 @@
                             {% endif %}
                         </div>
 
-                        <!-- Flecha -->
+                        {% if item.device.is_active %}
                         <div class="d-flex justify-content-end mt-2 pt-1">
                             <small class="text-primary fw-semibold">Ver datos →</small>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </a>
