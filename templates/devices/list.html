@@ -118,16 +118,17 @@
                             </div>
                         </div>
 
-                        <!-- Lecturas -->
+                        
                         <div class="border-top pt-2 mt-auto">
                             {% if item.latest %}
                             <div class="d-flex justify-content-between small text-muted mb-1">
-                                <span>{{ item.latest.dateData|date:"H:i" }}</span>
-                                <span class="text-primary fw-medium">{{ item.latest.temperature|floatformat:1 }}°</span>
+                                <span>Ultimo: {{ item.latest.dateData }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                <span class="fw-medium">Temperatura: {{ item.latest.temperature|floatformat:1 }}°</span>
                             </div>
                             <div class="d-flex justify-content-between small text-muted">
-                                <span>{{ item.latest.humidity|floatformat:0 }}%</span>
-                                <span class="text-primary fw-medium">H</span>
+                                <span>Humedad: {{ item.latest.humidity|floatformat:0 }}%</span>
                             </div>
                             {% else %}
                             <div class="text-center py-2">
