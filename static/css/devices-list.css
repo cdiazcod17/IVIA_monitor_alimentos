@@ -115,3 +115,49 @@
         box-shadow: 0 6px 16px rgba(255,255,255,0.15);
     }
 }
+
+/* FIX Cards desborde - 100% responsive */
+.device-card .card-body {
+    overflow: hidden;
+}
+
+.status-actions {
+    flex-shrink: 0 !important;
+    flex-basis: 70px;
+    max-width: 80px;
+}
+
+.badge-status {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.4rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+}
+
+.btn-status {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.3rem !important;
+    line-height: 1.1 !important;
+    min-height: 24px !important;
+    white-space: nowrap !important;
+}
+
+/* Truncate texto largo */
+.card-title, .text-muted {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Mobile específico */
+@media (max-width: 576px) {
+    .status-actions {
+        flex-basis: 60px;
+        max-width: 65px;
+    }
+    
+    .badge-status, .btn-status {
+        font-size: 0.6rem !important;
+        padding: 0.15rem 0.25rem !important;
+    }
+}

@@ -1,107 +1,116 @@
 {% extends 'base.html' %}
-{% block title %}Dispositivos{% endblock %}
+{% load static %}
+{% block title %}Dispositivos - Pot Monitor IVIA{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Filtros -->
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <h1 class="display-5 fw-bold mb-1">Dispositivos</h1>
-            <p class="lead text-muted mb-0">
-                {{ devices|length }} totales 
-                {% if total_active %}({{ total_active }} activos, {{ total_inactive }} inactivos){% endif %}
+<div class="container-fluid py-4 px-3 px-md-4">
+    <!-- Header Filtros -->
+    <div class="row align-items-center mb-4 mb-md-5">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <h1 class="display-5 fw-bold mb-0 me-3 lh-1">Dispositivos</h1>
+                <span class="badge bg-primary fs-6">{{ devices|length }} total</span>
+            </div>
+            <p class="lead text-muted mt-2 mb-0">
+                {% if total_active %}{{ total_active }} activos • {{ total_inactive }} inactivos{% endif %}
             </p>
         </div>
-
-        <div class="d-flex gap-2 align-items-center">
-            <div class="btn-group" role="group">
-                <a href="{% url 'devices:list' %}?status=active" 
-                   class="btn btn-outline-primary 
-                          {% if status_filter == 'active' %}active fw-bold{% endif %}">
-                    Activos
-                </a>
-                <a href="{% url 'devices:list' %}?status=inactive" 
-                   class="btn btn-outline-secondary 
-                          {% if status_filter == 'inactive' %}active fw-bold{% endif %}">
-                    Inactivos
-                </a>
-                <a href="{% url 'devices:list' %}" 
-                   class="btn btn-outline-secondary 
-                          {% if status_filter != 'active' and status_filter != 'inactive' %}active fw-bold{% endif %}">
-                    Todos
+        
+        <div class="col-md-4 mt-3 mt-md-0">
+            <div class="d-flex gap-2 justify-content-md-end">
+                <!-- Filtros -->
+                <div class="btn-group w-100 w-md-auto" role="group">
+                    <a href="{% url 'devices:list' %}?status=active" 
+                       class="btn btn-outline-primary 
+                              {% if status_filter == 'active' %}active fw-semibold shadow-sm{% endif %}">
+                        🟢 Activos
+                    </a>
+                    <a href="{% url 'devices:list' %}?status=inactive" 
+                       class="btn btn-outline-secondary 
+                              {% if status_filter == 'inactive' %}active fw-semibold shadow-sm{% endif %}">
+                        🔴 Inactivos
+                    </a>
+                    <a href="{% url 'devices:list' %}" 
+                       class="btn btn-outline-secondary 
+                              {% if status_filter != 'active' and status_filter != 'inactive' %}active fw-semibold shadow-sm{% endif %}">
+                        📋 Todos
+                    </a>
+                </div>
+                
+                <!-- Añadir -->
+                <a href="{% url 'devices:add' %}" class="btn btn-primary shadow-sm ms-md-2">
+                    <i class="bi bi-plus-circle me-1"></i>Nuevo
                 </a>
             </div>
-            
-            <a href="{% url 'devices:add' %}" class="btn btn-primary ms-2">
-                <i class="bi bi-plus-circle me-1"></i>Personalizar
-            </a>
         </div>
     </div>
 
-    <!-- Lista dispositivos -->
-    <div class="row g-4">
+    <!-- Grid Dispositivos -->
+    <div class="row g-3 g-md-4">
         {% for item in devices %}
         <div class="col-xl-3 col-lg-4 col-md-6">
             <a href="{% url 'devices:detail' item.device.device_id %}" class="text-decoration-none">
-                <div class="card h-100 border-0 shadow-sm hover-shadow-lg transition-all">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start mb-3">
-                            <!-- Icono izquierda -->
-                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 flex-shrink-0">
-                                <i class="bi bi-cpu-fill text-primary fs-4"></i>
+                <div class="card h-100 device-card border-0 shadow-sm hover-shadow-lg transition-all">
+                    <div class="card-body p-3 p-md-4">
+                        <!-- Header: Icono + Info + Status -->
+                        <div class="d-flex align-items-start mb-3 gap-2">
+                            <!-- Icono -->
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary bg-opacity-10 p-2 p-md-3 rounded-3">
+                                    <i class="bi bi-cpu-fill text-primary fs-4 fs-md-3"></i>
+                                </div>
                             </div>
 
-                            <!-- Info centro -->
-                            <div class="flex-grow-1 min-width-0">
-                                <h5 class="card-title fw-bold mb-1">
+                            <!-- Info Principal -->
+                            <div class="flex-grow-1 min-w-0">
+                                <h6 class="card-title fw-bold mb-1 lh-sm fs-6 fs-md-5 mb-1">
                                     {% if item.user_device and item.user_device.alias %}
-                                        {{ item.user_device.alias }}
+                                        {{ item.user_device.alias|truncatechars:18 }}
                                     {% else %}
-                                        {{ item.device.default_name }}
+                                        {{ item.device.default_name|truncatechars:18 }}
                                     {% endif %}
-                                </h5>
-
-                                <small class="text-muted mb-1 d-block">
+                                </h6>
+                                
+                                <small class="text-muted d-block lh-sm fs-6 fs-md-5">
                                     Dispositivo: {{ item.device.device_id }}
                                 </small>
-
-                                <small class="text-muted">
-                                    {{ item.device.location|default:"Sin ubicación" }}
+                                
+                                <small class="text-muted lh-sm fs-6 fs-md-5">
+                                    {{ item.device.location|default:"Sin ubicación"|truncatechars:20 }}
                                 </small>
-
+                                
                                 {% if item.user_device and item.user_device.food_name %}
-                                <small class="text-primary d-block mt-1">
-                                    Alimento: {{ item.user_device.food_name }}
+                                <small class="text-primary d-block lh-sm fs-6 fs-md-5 mt-1">
+                                    {{ item.user_device.food_name|truncatechars:15 }}
                                 </small>
                                 {% endif %}
                             </div>
 
-                            <!-- Status y botón DERECHA -->
-                            <div class="ms-auto">
+                            <!-- Status + Acción -->
+                            <div class="flex-shrink-0 ms-2 status-actions" style="min-width: 70px; max-width: 80px;">
                                 <div class="d-flex flex-column gap-1">
-                                    <!-- Badge status -->
-                                    <span class="badge fs-6 fw-semibold px-2 py-1 mb-1 
-                                                 {% if item.device.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    <!-- Badge -->
+                                    <span class="badge badge-status fs-6 lh-1 px-2 py-1">
                                         {{ item.device.is_active|yesno:"🟢 Activo,🔴 Inactivo" }}
                                     </span>
                                     
-                                    <!-- Botón acción -->
+                                    <!-- Botón -->
                                     {% if item.device.is_active %}
-                                    <form method="post" action="{% url 'devices:disable' %}" class="d-inline-block w-100">
+                                    <form method="post" action="{% url 'devices:disable' %}" class="d-inline mb-0">
                                         {% csrf_token %}
                                         <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                        <button type="submit" class="btn btn-danger btn-action w-100 h-100" 
+                                        <button type="submit" class="btn btn-sm btn-danger btn-status px-1 py-1 shadow-none" 
                                                 onclick="return confirm('¿Desactivar {{ item.device.default_name }}?')">
-                                            <i class="bi bi-power me-1"></i>OFF
+                                            <i class="bi bi-power"></i>
                                         </button>
                                     </form>
                                     {% else %}
-                                    <form method="post" action="{% url 'devices:enable' %}" class="d-inline-block w-100">
+                                    <form method="post" action="{% url 'devices:enable' %}" class="d-inline mb-0">
                                         {% csrf_token %}
                                         <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                        <button type="submit" class="btn btn-success btn-action w-100 h-100" 
+                                        <button type="submit" class="btn btn-sm btn-success btn-status px-1 py-1 shadow-none" 
                                                 onclick="return confirm('¿Activar {{ item.device.default_name }}?')">
-                                            <i class="bi bi-power me-1"></i>ON
+                                            <i class="bi bi-power"></i>
                                         </button>
                                     </form>
                                     {% endif %}
@@ -109,50 +118,104 @@
                             </div>
                         </div>
 
-                        <!-- Última lectura -->
-                        <div class="border-top pt-3">
+                        <!-- Lecturas -->
+                        <div class="border-top pt-2 mt-auto">
                             {% if item.latest %}
-                            <small class="text-muted d-block">
-                                Última: {{ item.latest.dateData|date:"H:i d/m" }}
-                            </small>
-                            <small class="text-muted d-block">
-                                Temp: {{ item.latest.temperature|floatformat:1 }}°C
-                            </small>
-                            <small class="text-muted d-block">
-                                Hum: {{ item.latest.humidity|floatformat:1 }}%
-                            </small>
+                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                <span>{{ item.latest.dateData|date:"H:i" }}</span>
+                                <span class="text-primary fw-medium">{{ item.latest.temperature|floatformat:1 }}°</span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>{{ item.latest.humidity|floatformat:0 }}%</span>
+                                <span class="text-primary fw-medium">H</span>
+                            </div>
                             {% else %}
-                            <small class="text-muted">Sin lecturas</small>
+                            <div class="text-center py-2">
+                                <small class="text-muted">Sin lecturas</small>
+                            </div>
                             {% endif %}
                         </div>
 
                         <!-- Flecha -->
-                         {% if item.device.is_active %}
-                        <div class="d-flex justify-content-end align-items-end mt-3">
+                        <div class="d-flex justify-content-end mt-2 pt-1">
                             <small class="text-primary fw-semibold">Ver datos →</small>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
             </a>
         </div>
         {% empty %}
         <div class="col-12 text-center py-5">
-            <i class="bi bi-cpu display-1 text-muted mb-4 opacity-50"></i>
-            <h3 class="text-muted mb-3">Sin dispositivos</h3>
-            <p class="text-muted lead mb-4">No hay dispositivos para mostrar</p>
+            <div class="d-inline-block">
+                <i class="bi bi-cpu display-1 text-muted mb-4 opacity-50"></i>
+                <h3 class="text-muted mb-3">Sin dispositivos</h3>
+                <p class="text-muted lead mb-4">No hay dispositivos configurados</p>
+                <a href="{% url 'devices:add' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Configurar primero
+                </a>
+            </div>
         </div>
         {% endfor %}
     </div>
 </div>
 
+<style>
+/* Cards PERFECTAS - Sin desborde */
+.hover-shadow-lg { 
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+.hover-shadow-lg:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12) !important; 
+}
+
+.status-actions {
+    flex-shrink: 0 !important;
+    flex-basis: 70px;
+    max-width: 80px;
+}
+
+.badge-status {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.4rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+}
+
+.btn-status {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.3rem !important;
+    line-height: 1.1 !important;
+    min-height: 24px !important;
+    white-space: nowrap !important;
+    border-radius: 0.375rem;
+}
+
+/* Truncate responsive */
+.min-w-0 .card-title,
+.min-w-0 small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Mobile optimizado */
+@media (max-width: 576px) {
+    .status-actions { flex-basis: 60px; max-width: 65px; }
+    .badge-status, .btn-status { font-size: 0.6rem !important; padding: 0.15rem 0.25rem !important; }
+    .card-body { padding: 1rem !important; }
+}
+</style>
+
 <script>
-// Scroll suave a filtros
-window.addEventListener('load', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('status')) {
-        document.querySelector('.btn-group').scrollIntoView({ behavior: 'smooth' });
-    }
-});
+// Scroll suave filtros
+if (new URLSearchParams(window.location.search).get('status')) {
+    setTimeout(() => {
+        document.querySelector('.btn-group').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+    }, 200);
+}
 </script>
 {% endblock %}
