@@ -10,10 +10,8 @@ from django.http import HttpResponse
 @login_required
 def device_list(request):
     # Filtro por GET
-    status_filter = request.GET.get('status', 'all')
-    
-    devices = Device.objects.all().order_by('device_id')
-    
+    status_filter = request.GET.get('status', 'all')    
+    devices = Device.objects.all().order_by('device_id')    
     if status_filter == 'inactive':
         devices = devices.filter(is_active=False)
     elif status_filter == 'active':
@@ -78,7 +76,7 @@ def device_detail(request, device_id):
     date_from    = request.GET.get('date_from', '')
     date_to      = request.GET.get('date_to', '')
 
-    latest   = services.get_last_reading(device_id)
+    latest   = services.get_latest_reading(device_id)
     stats    = services.get_device_stats(device_id, range_preset, date_from, date_to)
     readings = services.get_filtered_readings(device_id, range_preset, date_from, date_to)
 
@@ -86,7 +84,7 @@ def device_detail(request, device_id):
         'device_id':    device_id,
         'latest':       latest,
         'stats':        stats,
-        'readings':     readings,
+        'sensor_data':     readings,
         'range_preset': range_preset,
         'date_from':    date_from,
         'date_to':      date_to,
