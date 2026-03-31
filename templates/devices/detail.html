@@ -1,134 +1,147 @@
-{% extends 'base.html' %}
-{% block title %}
-    {% if user_device.alias %}
-        {{ user_device.alias }}
-    {% else %}
-        {{ device.default_name }}
-    {% endif %}
-{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Breadcrumb / Navegación -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{% url 'devices:list' %}" class="text-decoration-none">
-                    <i class="bi bi-arrow-left me-1"></i> Todos los dispositivos
-                </a>
-            </li>
-            <li class="breadcrumb-item active" aria-current="page">
-                {% if user_device.alias %}
-                    {{ user_device.alias }}
-                {% else %}
-                    {{ device.default_name }}
+<div class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Detalle del dispositivo</h2>
+            <p class="text-muted mb-0">Consulta, filtra y descarga las lecturas del sensor.</p>
+        </div>
+
+        <a href="{% url 'devices:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+            <h5 class="mb-0">Filtros y descarga</h5>
+        </div>
+
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Periodo</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for value, label in preset_ranges %}
+                            <a href="?range={{ value }}"
+                               class="btn btn-sm {% if range_preset == value %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                {{ label }}
+                            </a>
+                        {% endfor %}
+
+                        <a href="?range=custom"
+                           class="btn btn-sm {% if range_preset == 'custom' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                            Personalizado
+                        </a>
+                    </div>
+                </div>
+
+                {% if range_preset == 'custom' %}
+                    <div class="col-12 col-md-4">
+                        <label for="date_from" class="form-label">Desde</label>
+                        <input
+                            type="datetime-local"
+                            id="date_from"
+                            name="date_from"
+                            class="form-control"
+                            value="{{ date_from }}"
+                        >
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="date_to" class="form-label">Hasta</label>
+                        <input
+                            type="datetime-local"
+                            id="date_to"
+                            name="date_to"
+                            class="form-control"
+                            value="{{ date_to }}"
+                        >
+                    </div>
+
+                    <div class="col-12 col-md-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel me-1"></i>Aplicar filtro
+                        </button>
+                    </div>
                 {% endif %}
-            </li>
-        </ol>
-    </nav>
 
-    <div class="row g-5">
-        <div class="col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body p-5 text-center">
-                    <div class="mb-4">
-                        <div class="bg-primary bg-opacity-10 p-4 rounded-4 mx-auto mb-3" style="width: 120px;">
-                            <i class="bi bi-cpu-fill text-primary display-5"></i>
+                <div class="col-12">
+                    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-2">
+                        <small class="text-muted">
+                            Mostrando {{ sensor_data|length }} lecturas
+                        </small>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a
+                                href="{% url 'devices:device_download_csv' device_id %}?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}"
+                                class="btn btn-success btn-sm"
+                            >
+                                <i class="bi bi-download me-1"></i>Descargar CSV
+                            </a>
                         </div>
-
-                        <h2 class="h3 fw-bold mb-2">
-                            {% if user_device and user_device.alias %}
-                                {{ user_device.alias }}
-                            {% else %}
-                                {{ device.default_name }}
-                            {% endif %}
-                        </h2>
-
-                        <p class="text-muted mb-1">ID: {{ device.device_id }}</p>
-
-                        <span class="badge fs-6 px-3 py-2 {% if device.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-                            {{ device.is_active|yesno:"🟢 Activo,🔴 Inactivo" }}
-                        </span>
-                    </div>
-
-                    <div class="border-top pt-4 text-start">
-                        <p class="text-muted small mb-2">
-                            <strong>Ubicación:</strong>
-                            {{ device.location|default:"No especificada" }}
-                        </p>
-
-                        <p class="text-muted small mb-2">
-                            <strong>Descripción:</strong>
-                            {{ device.description|default:"Sin descripción" }}
-                        </p>
-
-                        <p class="text-muted small mb-2">
-                            <strong>Alimento:</strong>
-                            {% if user_device and user_device.food_name %}
-                                {{ user_device.food_name }}
-                            {% else %}
-                                No configurado
-                            {% endif %}
-                        </p>
-
-                        <p class="text-muted small mb-0">
-                            <strong>Notas:</strong>
-                            {% if user_device and user_device.notes %}
-                                {{ user_device.notes }}
-                            {% else %}
-                                Sin notas
-                            {% endif %}
-                        </p>
                     </div>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Lecturas del sensor</h5>
+            <span class="badge text-bg-light border">{{ sensor_data|length }} registros</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Hora</th>
+                            <th>Temp (°C)</th>
+                            <th>Humedad (%)</th>
+                            <th>CO₂ (ppm)</th>
+                            <th>Peso (g)</th>
+                            <th>Etileno</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reading in sensor_data %}
+                        <tr>
+                            <td class="text-nowrap text-muted">{{ reading.dateData }}</td>
+                            <td>
+                                <span class="badge bg-info text-dark">
+                                    {{ reading.temperature|default:"-" }}
+                                </span>
+                            </td>
+                            <td>{{ reading.humidity|default:"-" }}</td>
+                            <td>{{ reading.co2|default:"-" }}</td>
+                            <td class="fw-semibold">{{ reading.weight|default:"-" }}</td>
+                            <td>{{ reading.ethylene|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <div class="d-flex flex-column align-items-center gap-2">
+                                    <i class="bi bi-inbox fs-3"></i>
+                                    <span>Sin datos para el filtro seleccionado</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
-                    <h3 class="h4 fw-bold mb-0">Últimas lecturas</h3>
-                    <a href="{% url 'devices:list' %}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrow-left me-1"></i>Todos dispositivos
-                    </a>
-                </div>
-
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Hora</th>
-                                    <th>Temp (°C)</th>
-                                    <th>Humedad (%)</th>
-                                    <th>CO₂ (ppm)</th>
-                                    <th>Peso (g)</th>
-                                    <th>Etileno</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for reading in sensor_data %}
-                                <tr>
-                                    <td>{{ reading.dateData }}</td>
-                                    <td><span class="badge bg-info">{{ reading.temperature }}</span></td>
-                                    <td>{{ reading.humidity }}</td>
-                                    <td>{{ reading.co2|default:"-" }}</td>
-                                    <td class="fw-semibold">{{ reading.weight|default:"-" }}</td>
-                                    <td>{{ reading.ethylene|default:"-" }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">
-                                        Sin datos aún
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        {% if sensor_data|length >= 500 %}
+        <div class="card-footer bg-transparent text-muted small">
+            Se muestra un máximo de 500 registros en pantalla. Usa la descarga CSV para obtener el conjunto completo filtrado.
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
