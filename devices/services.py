@@ -42,10 +42,11 @@ def get_latest_reading(device_id: int) -> dict | None:
 
 
 def build_filter(range_preset, date_from=None, date_to=None):
-    """Devuelve (where_clause, params_extra) según el filtro activo."""
     if range_preset == 'custom' and date_from and date_to:
+        date_from = date_from.replace('T', ' ')
+        date_to   = date_to.replace('T', ' ')
         return "AND dateData BETWEEN %s AND %s", [date_from, date_to]
-    
+
     hours = {'1h': 1, '6h': 6, '24h': 24, '7d': 168}.get(range_preset, 24)
     return "AND dateData >= DATE_SUB(NOW(), INTERVAL %s HOUR)", [hours]
 
@@ -83,7 +84,7 @@ def get_device_stats(device_id, range_preset='24h', date_from=None, date_to=None
     }
 
 
-def get_filtered_readings(device_id, range_preset='24h', date_from=None, date_to=None, limit=500):
+def get_filtered_readings(device_id, range_preset='24h', date_from=None, date_to=None, limit=200):
     """Lecturas filtradas por rango para tabla y descarga."""
     where, extra_params = build_filter(range_preset, date_from, date_to)
     
@@ -95,6 +96,5 @@ def get_filtered_readings(device_id, range_preset='24h', date_from=None, date_to
             ORDER BY dateData DESC
             LIMIT %s
         """, [device_id] + extra_params + [limit])
-        
         columns = ['dateData', 'temperature', 'humidity', 'pressure', 'co2', 'weight', 'ethylene']
         return [dict(zip(columns, row)) for row in cursor.fetchall()]

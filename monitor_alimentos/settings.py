@@ -84,7 +84,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.main_database',
     },
     'sensors': {    #BD donde tengo la informacion de los dispositivos
-        'ENGINE': 'django.db.backends.sqlite3',
         'ENGINE': 'django.db.backends.mysql',
         'NAME':os.getenv('DATABASE'),
         'USER': os.getenv('USER'),

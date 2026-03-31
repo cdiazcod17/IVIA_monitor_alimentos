@@ -78,13 +78,18 @@ def device_detail(request, device_id):
 
     latest   = services.get_latest_reading(device_id)
     stats    = services.get_device_stats(device_id, range_preset, date_from, date_to)
-    readings = services.get_filtered_readings(device_id, range_preset, date_from, date_to)
+    sensor_data = services.get_filtered_readings(
+        device_id=device_id,
+        range_preset=range_preset,
+        date_from=date_from or None,
+        date_to=date_to or None,
+    )
 
     context = {
         'device_id':    device_id,
         'latest':       latest,
         'stats':        stats,
-        'sensor_data':     readings,
+        'sensor_data':  sensor_data,        
         'range_preset': range_preset,
         'date_from':    date_from,
         'date_to':      date_to,
