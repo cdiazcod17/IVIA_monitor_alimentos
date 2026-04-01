@@ -1,74 +1,45 @@
-# Pot Monitor - Sistema de Monitoreo Agrícola IVIA 📱🌱
+# Pot Monitor — Sistema de Monitoreo Agrícola IVIA
 
-## Descripción
-Aplicación **full-stack** Django + Raspberry Pi para monitoreo en tiempo real de **sensores agrícolas** en el Instituto Valenciano de Investigación Agrícola (IVIA). Permite a investigadores gestionar dispositivos, visualizar datos y controlar la frecuencia de muestreo.
+Aplicación full-stack Django para monitoreo en tiempo real de sensores agrícolas en el Instituto Valenciano de Investigación Agrícola (IVIA). Permite a investigadores gestionar dispositivos, visualizar datos y controlar la frecuencia de muestreo.
 
-**Estado**: Producción activa | **Usuarios**: Investigadores IVIA | **Ubicación**: Valencia, España
+**Estado**: Producción activa, version BETA V1.0.0  
+**Usuarios**: Investigadores IVIA  
+**Ubicación**: Valencia, España
 
-## 🚀 Servicios Actuales
+---
 
-### **Dashboard Web (Django + Bootstrap 5)**
+## Servicios
 
-✅ Gestión dispositivos (activar/desactivar)
-✅ Filtros activos/inactivos/todos
-✅ Control granular periodicidad muestreo (2s,5s,10s,30s)
-✅ Visualización datos temperatura/humedad en tiempo real
-✅ Cards responsive con última lectura
-✅ Empty states y UX móvil-first
+### Dashboard Web (Django + Bootstrap 5)
 
-text
+- Gestión de dispositivos (activar/desactivar)
+- Filtros activos/inactivos/todos
+- Control de periodicidad de muestreo (2s, 5s, 10s, 30s)
+- Visualización de datos temperatura/humedad en tiempo real
+- Cards responsive con última lectura
+- Empty states y diseño mobile-first
 
-### **Script Placa (Raspberry Pi + HID)**
+### Script de placa (Raspberry Pi + HID)
 
-✅ Lectura HID sensores (VID:0x06DC PID:0x5750)
-✅ Buffer inteligente (30 lecturas → MySQL)
-✅ Configuración dinámica por usuario/dispositivo
-✅ API disco espacio (/api/disk → % uso)
-✅ Multi-dispositivo/usuario
-✅ Sleep dinámico por config usuario
+- Lectura HID de sensores (VID:0x06DC PID:0x5750)
+- Buffer inteligente (30 lecturas → MySQL)
+- Configuración dinámica por usuario/dispositivo
+- API de uso de disco (`/api/disk`)
+- Soporte multi-dispositivo/usuario
+- Sleep dinámico por configuración de usuario
 
-text
 
-### **Base de Datos (MySQL → Disco Externo)**
-
-✅ sensor_readings (temp, hum, pres, co2, peso, etileno)
-✅ UserDevice (alias, intervalos, user FK)
-✅ Almacenamiento externo montado /mnt/external_data
-✅ Backup automático SD→USB
-
-text
-
-### **Control Periodicidad (Feature Nuevo)**
-
-👥 Usuario1 → Device001 → 2s (Alta precisión)
-👥 Usuario2 → Device001 → 10s (Económico)
-👥 Usuario3 → Device002 → 5s (Normal)
-
-Flujo: Web → Django API → HID CMD → MCU → Sleep dinámico
-
-text
-
-## 🏗️ Arquitectura
-
-Raspberry Pi + Sensores HID
-↓ (datos cada X seg)
-MySQL (disco externo USB)
-↓ (API REST)
-Django Dashboard (Web)
-↓ (HID write)
-MCU config (sampling rate)
-
-text
-
-## 📱 Interfaz Usuario
+## Interfaz de usuario
 
 | Pantalla | Funcionalidades |
 |----------|----------------|
-| **Lista** | Filtros, cards responsive, ON/OFF, última lectura |
-| **Detalle** | Gráficos tiempo real, control periodicidad |
-| **Dashboard** | % Disco, alertas espacio, estado dispositivos |
+| Lista | Filtros, cards responsive, ON/OFF, última lectura |
+| Detalle | Historial filtrable, descarga CSV, control de periodicidad |
+| Dashboard | Uso de disco, alertas de espacio, estado de dispositivos |
 
-## 🔧 Instalación
+---
+
+## Instalación
 
 ```bash
 # Backend Django
@@ -77,38 +48,45 @@ cd pot_monitor
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
+```
+---
 
-# Placa (Raspberry Pi)
-sudo apt install python3-hid python3-mysql.connector python3-requests
-python3 sensor_script.py
+## Stack técnico
 
-🛠️ Stack Técnico
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | Django Templates + Bootstrap 5 |
+| Backend | Django 6 + MySQL 8 |
+| Placa | Python 3.11 + hidapi + MySQL Connector |
+| Infraestructura | Raspberry Pi 4 + USB 3.0 SSD + Nginx |
 
-text
-Frontend: Django Templates + Bootstrap 5 + htmx
-Backend: Django 4.x + MySQL 8
-Placa: Python 3.11 + hidapi + MySQL Connector
-Infra: Raspberry Pi 4 + USB 3.0 SSD + Nginx
-DevOps: GitHub Actions + Docker-ready
+---
 
-📊 Métricas Esperadas
+## Métricas de referencia
 
-text
--  1-10 dispositivos activos simultáneos
--  2-30 segundos intervalo muestreo configurable
--  ~1.2MB/día/dispositivo (30s intervalos)
--  Escalable multi-investigador IVIA
+- 1–10 dispositivos activos simultáneos
+- Intervalo de muestreo configurable: 2–30 segundos
+- Almacenamiento aproximado: 1.2 MB/día/dispositivo (con intervalos de 30s)
+- Arquitectura escalable para múltiples investigadores
 
-🤝 Colaboradores
+---
 
-Carlos Díaz - Full-stack DAW Intern @ IVIA
-Desarrollo: Django/Vue.js, DevOps, Base de datos
-Enfocado: Infra producción, UX agrícola
-📄 Licencia
+## Próximas funcionalidades
 
-Propiedad Instituto Valenciano de Investigación Agrícola (IVIA)
-Uso interno - No distribuir sin autorización
+- Alertas por WhatsApp
+- Estadisticas por periodos
+- Soporte multi-placa
 
-¡Sistema listo para producción agrícola! 🌾💾🚀
+---
 
-Próximos: Alertas WhatsApp, ML predicción estrés vegetal, Multi-placa
+## Autor
+
+**Carlos Díaz** — Full-stack intern (DAW) @ IVIA  
+Django, Vue.js, DevOps, base de datos
+
+---
+
+## Licencia
+
+Propiedad del Instituto Valenciano de Investigación Agrícola (IVIA).  
+Uso interno — no distribuir sin autorización.
