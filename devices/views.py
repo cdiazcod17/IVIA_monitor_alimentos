@@ -146,3 +146,4 @@ def device_enable(request):
     device.save()
     messages.success(request, f'Dispositivo {device.default_name} Activado')
     return redirect('devices:list')
+
