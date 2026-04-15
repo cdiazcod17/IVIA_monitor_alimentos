@@ -97,4 +97,14 @@ def get_filtered_readings(device_id, range_preset='24h', date_from=None, date_to
             LIMIT %s
         """, [device_id] + extra_params + [limit])
         columns = ['dateData', 'temperature', 'humidity', 'pressure', 'co2', 'weight', 'ethylene']
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        rows = cursor.fetchall()
+        data = []
+        for row in rows:
+            r = dict(zip(columns, row))
+            # formatea dateData a string con segundos
+            if r['dateData']:
+                r['dateData_str'] = r['dateData'].strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                r['dateData_str'] = ''
+            data.append(r)
+        return data

@@ -111,7 +111,7 @@
                     <tbody>
                         {% for reading in sensor_data %}
                         <tr>
-                            <td class="text-nowrap text-muted">{{ reading.dateData }}</td>
+                            <td class="text-nowrap text-muted">{{ reading.dateData|date:"Y-m-d H:i:s" }}</td>
                             <td>
                                 <span class="badge bg-info text-dark">
                                     {{ reading.temperature|default:"-" }}
