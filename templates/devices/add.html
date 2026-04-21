@@ -33,30 +33,45 @@
                             </label>
 
                             <div class="row g-3">
-                                {% for device in devices %}
+                                {% for item in devices_with_user_data %}
                                 <div class="col-md-6">
                                     <div class="form-check device-option">
-                                        <input 
-                                            class="form-check-input" 
-                                            type="radio" 
-                                            name="device_id" 
-                                            id="device_{{ device.device_id }}"
-                                            value="{{ device.device_id }}"
-                                            {% if user_device and user_device.device_id == device.device_id %}checked{% endif %}
+                                        <input
+                                            class="form-check-input device-radio"
+                                            type="radio"
+                                            name="device_id"
+                                            id="device_{{ item.device.device_id }}"
+                                            value="{{ item.device.device_id }}"
+                                            data-alias="{{ item.user_device.alias|default:''|escape }}"
+                                            data-food-name="{{ item.user_device.food_name|default:''|escape }}"
+                                            data-notes="{{ item.user_device.notes|default:''|escape }}"
+                                            {% if selected_device_id == item.device.device_id %}checked{% endif %}
                                         >
-                                        <label class="form-check-label w-100 p-3 border rounded-3" for="device_{{ device.device_id }}">
+
+                                        <label class="form-check-label w-100 p-3 border rounded-3" for="device_{{ item.device.device_id }}">
                                             <div class="d-flex align-items-center">
                                                 <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 flex-shrink-0">
                                                     <i class="bi bi-cpu-fill text-primary fs-4"></i>
                                                 </div>
-                                                <div class="flex-grow-1">
-                                                    <h6 class="fw-bold mb-1">{{ device.default_name }}</h6>
-                                                    <small class="text-muted">ID: {{ device.device_id }}</small>
-                                                    <br>
-                                                    <small class="text-muted">{{ device.location|default:"Sin ubicación" }}</small>
+
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                                                        <h6 class="fw-bold mb-1 text-break">{{ item.device.default_name }}</h6>
+                                                        <span class="badge text-bg-light border">#{{ forloop.counter }}</span>
+                                                    </div>
+
+                                                    <small class="text-muted d-block text-break">
+                                                        {{ item.device.location|default:"Sin ubicación" }}
+                                                    </small>
                                                 </div>
                                             </div>
                                         </label>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12">
+                                    <div class="text-center text-muted py-4">
+                                        No hay dispositivos activos disponibles.
                                     </div>
                                 </div>
                                 {% endfor %}
@@ -67,34 +82,37 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Alias / Nombre personalizado</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control form-control-lg" 
+                                <input
+                                    type="text"
+                                    class="form-control form-control-lg"
+                                    id="alias"
                                     name="alias"
-                                    value="{% if user_device %}{{ user_device.alias }}{% endif %}"
+                                    value="{% if selected_user_device %}{{ selected_user_device.alias }}{% endif %}"
                                     placeholder="Ej: Mi cámara norte"
                                 >
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Alimento</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control form-control-lg" 
+                                <input
+                                    type="text"
+                                    class="form-control form-control-lg"
+                                    id="food_name"
                                     name="food_name"
-                                    value="{% if user_device %}{{ user_device.food_name }}{% endif %}"
+                                    value="{% if selected_user_device %}{{ selected_user_device.food_name }}{% endif %}"
                                     placeholder="Ej: Tomate cherry"
                                 >
                             </div>
 
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Notas</label>
-                                <textarea 
-                                    class="form-control" 
-                                    rows="3" 
+                                <textarea
+                                    class="form-control"
+                                    id="notes"
+                                    rows="3"
                                     name="notes"
                                     placeholder="Observaciones sobre este dispositivo..."
-                                >{% if user_device %}{{ user_device.notes }}{% endif %}</textarea>
+                                >{% if selected_user_device %}{{ selected_user_device.notes }}{% endif %}</textarea>
                             </div>
                         </div>
 
@@ -102,8 +120,8 @@
                             <a href="{% url 'devices:list' %}" class="btn btn-secondary">
                                 ← Volver a dispositivos
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                {% if user_device %}Actualizar{% else %}Guardar{% endif %} configuración
+                            <button type="submit" class="btn btn-primary" id="save-config-btn">
+                                {% if selected_user_device %}Actualizar{% else %}Guardar{% endif %} configuración
                             </button>
                         </div>
                     </form>
@@ -117,13 +135,75 @@
 .device-option {
     cursor: pointer;
 }
+
 .device-option:hover .form-check-label {
     background-color: #f8f9fa;
     border-color: #dee2e6;
 }
+
 .device-option .form-check-input:checked + .form-check-label {
     background-color: #e3f2fd;
     border-color: #2196f3;
 }
+
+.device-option .form-check-label {
+    transition: all 0.2s ease;
+}
+
+.form-check-input {
+    margin-top: 1rem;
+}
+
+.min-w-0 {
+    min-width: 0;
+}
+
+@media (max-width: 767.98px) {
+    .card-body.p-5 {
+        padding: 1.5rem !important;
+    }
+
+    .device-option .form-check-label {
+        padding: 1rem !important;
+    }
+}
 </style>
-{% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const radios = document.querySelectorAll('.device-radio');
+    const aliasInput = document.getElementById('alias');
+    const foodInput = document.getElementById('food_name');
+    const notesInput = document.getElementById('notes');
+    const submitButton = document.getElementById('save-config-btn');
+
+    function fillFields(radio) {
+        if (!radio) return;
+
+        aliasInput.value = radio.dataset.alias || '';
+        foodInput.value = radio.dataset.foodName || '';
+        notesInput.value = radio.dataset.notes || '';
+
+        const hasExistingData =
+            (radio.dataset.alias && radio.dataset.alias.trim() !== '') ||
+            (radio.dataset.foodName && radio.dataset.foodName.trim() !== '') ||
+            (radio.dataset.notes && radio.dataset.notes.trim() !== '');
+
+        submitButton.textContent = hasExistingData
+            ? 'Actualizar configuración'
+            : 'Guardar configuración';
+    }
+
+    const checkedRadio = document.querySelector('.device-radio:checked');
+    if (checkedRadio) {
+        fillFields(checkedRadio);
+    }
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            fillFields(this);
+        });
+    });
+});
+</script>
+{% endblock %}e

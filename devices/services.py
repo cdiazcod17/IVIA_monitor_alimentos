@@ -96,7 +96,7 @@ def get_filtered_readings(device_id, range_preset='24h', date_from=None, date_to
             ORDER BY dateData DESC
             LIMIT %s
         """, [device_id] + extra_params + [limit])
-        columns = ['dateData', 'temperature', 'humidity', 'pressure', 'co2', 'weight', 'ethylene']
+        columns = ['dateData', 'temperature', 'humidity', 'pressure', 'co2', 'weight', 'ethylene']  
         rows = cursor.fetchall()
         data = []
         for row in rows:

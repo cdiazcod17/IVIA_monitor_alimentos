@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from .models import Device, UserDevice
 from . import services
 import csv
@@ -10,15 +11,19 @@ from django.http import HttpResponse
 @login_required
 def device_list(request):
     # Filtro por GET
-    status_filter = request.GET.get('status', 'all')    
-    devices = Device.objects.all().order_by('device_id')    
+    status_filter = request.GET.get('status', 'active')
+    devices = Device.objects.all().order_by('id')
+
     if status_filter == 'inactive':
         devices = devices.filter(is_active=False)
     elif status_filter == 'active':
         devices = devices.filter(is_active=True)
-    
-    user_links = {link.device_id: link for link in UserDevice.objects.filter(user=request.user)}
-    
+
+    user_links = {
+        link.device_id: link
+        for link in UserDevice.objects.filter(user=request.user)
+    }
+
     devices_with_data = []
     for device in devices:
         devices_with_data.append({
@@ -26,10 +31,10 @@ def device_list(request):
             'user_device': user_links.get(device.id),
             'latest': services.get_latest_reading(device.device_id),
         })
-    
+
     context = {
         'devices': devices_with_data,
-        'status_filter': status_filter,  # Para mantener activo el botón
+        'status_filter': status_filter,
         'total_active': Device.objects.filter(is_active=True).count(),
         'total_inactive': Device.objects.filter(is_active=False).count(),
     }
@@ -38,7 +43,9 @@ def device_list(request):
 
 @login_required
 def device_add(request):
-    devices = Device.objects.filter(is_active=True).order_by('device_id')
+    devices = Device.objects.filter(is_active=True).order_by('id')
+    user_devices_qs = UserDevice.objects.filter(user=request.user, device__is_active=True).select_related('device')
+    user_devices_map = {ud.device.device_id: ud for ud in user_devices_qs}
 
     if request.method == 'POST':
         device_id = request.POST.get('device_id')
@@ -64,36 +71,78 @@ def device_add(request):
             user_device.notes = notes
             user_device.save()
 
-        return redirect('devices:list')
+        messages.success(request, 'Configuración del dispositivo guardada correctamente.')
+        return redirect('devices:add')
 
-    return render(request, 'devices/add.html', {
-        'devices': devices
-    })
+    selected_device_id = request.GET.get('device_id') or next(iter(user_devices_map.keys()), '')
+
+    devices_with_user_data = []
+    selected_user_device = None
+
+    for device in devices:
+        ud = user_devices_map.get(device.device_id)
+        devices_with_user_data.append({
+            'device': device,
+            'user_device': ud,
+        })
+        if device.device_id == selected_device_id:
+            selected_user_device = ud
+
+    context = {
+        'devices_with_user_data': devices_with_user_data,
+        'selected_device_id': selected_device_id,
+        'selected_user_device': selected_user_device,
+    }
+    return render(request, 'devices/add.html', context)
+
+
 @login_required
 def device_detail(request, device_id):
-    # Filtros
     range_preset = request.GET.get('range', '24h')
-    date_from    = request.GET.get('date_from', '')
-    date_to      = request.GET.get('date_to', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    alias_filter = request.GET.get('alias', '').strip()
+    page_number = request.GET.get('page')
 
-    latest   = services.get_latest_reading(device_id)
-    stats    = services.get_device_stats(device_id, range_preset, date_from, date_to)
-    sensor_data = services.get_filtered_readings(
+    latest = services.get_latest_reading(device_id)
+    stats = services.get_device_stats(device_id, range_preset, date_from, date_to)
+
+    user_device = UserDevice.objects.filter(
+        user=request.user,
+        device__device_id=device_id
+    ).select_related('device').first()
+
+    device_alias = ''
+    if user_device and user_device.alias:
+        device_alias = user_device.alias.strip()
+
+    all_sensor_data = services.get_filtered_readings(
         device_id=device_id,
         range_preset=range_preset,
         date_from=date_from or None,
         date_to=date_to or None,
     )
 
+    if alias_filter:
+        if not device_alias or alias_filter.lower() not in device_alias.lower():
+            all_sensor_data = []
+
+    paginator = Paginator(all_sensor_data, 20)
+    page_obj = paginator.get_page(page_number)
+    sensor_data = page_obj.object_list
+
     context = {
-        'device_id':    device_id,
-        'latest':       latest,
-        'stats':        stats,
-        'sensor_data':  sensor_data,        
+        'device_id': device_id,
+        'device_alias': device_alias,
+        'alias_filter': alias_filter,
+        'latest': latest,
+        'stats': stats,
+        'sensor_data': sensor_data,
+        'page_obj': page_obj,
         'range_preset': range_preset,
-        'date_from':    date_from,
-        'date_to':      date_to,
-        'preset_ranges': [('1h','1h'), ('6h','6h'), ('24h','24h'), ('7d','7 días')],
+        'date_from': date_from,
+        'date_to': date_to,
+        'preset_ranges': [('1h', '1h'), ('6h', '6h'), ('24h', '24h'), ('7d', '7 días')],
     }
     return render(request, 'devices/detail.html', context)
 
@@ -101,10 +150,9 @@ def device_detail(request, device_id):
 @login_required
 def device_download_csv(request, device_id):
     range_preset = request.GET.get('range', '24h')
-    date_from    = request.GET.get('date_from', '')
-    date_to      = request.GET.get('date_to', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
 
-    # Sin límite para la descarga (None = todos)
     readings = services.get_filtered_readings(
         device_id, range_preset, date_from, date_to, limit=99999
     )
@@ -114,10 +162,16 @@ def device_download_csv(request, device_id):
 
     writer = csv.writer(response)
     writer.writerow(['Fecha', 'Temperatura', 'Humedad', 'Presion', 'CO2', 'Peso', 'Etileno'])
+
     for r in readings:
         writer.writerow([
-            r['dateData'], r['temperature'], r['humidity'],
-            r['pressure'], r['co2'], r['weight'], r['ethylene']
+            r['dateData'],
+            r['temperature'],
+            r['humidity'],
+            r['pressure'],
+            r['co2'],
+            r['weight'],
+            r['ethylene']
         ])
 
     return response
@@ -127,7 +181,7 @@ def device_download_csv(request, device_id):
 def device_disable(request):
     if request.method != 'POST':
         return redirect('devices:list')
-    
+
     device_id = request.POST.get('device_id')
     device = get_object_or_404(Device, device_id=device_id)
     device.is_active = False
@@ -135,15 +189,15 @@ def device_disable(request):
     messages.success(request, f'Dispositivo {device.default_name} desactivado')
     return redirect('devices:list')
 
+
 @login_required
 def device_enable(request):
     if request.method != 'POST':
         return redirect('devices:list')
-    
+
     device_id = request.POST.get('device_id')
     device = get_object_or_404(Device, device_id=device_id)
     device.is_active = True
     device.save()
     messages.success(request, f'Dispositivo {device.default_name} Activado')
     return redirect('devices:list')
-
