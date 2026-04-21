@@ -101,7 +101,6 @@ def device_detail(request, device_id):
     range_preset = request.GET.get('range', '24h')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
-    alias_filter = request.GET.get('alias', '').strip()
     page_number = request.GET.get('page')
 
     latest = services.get_latest_reading(device_id)
@@ -123,10 +122,6 @@ def device_detail(request, device_id):
         date_to=date_to or None,
     )
 
-    if alias_filter:
-        if not device_alias or alias_filter.lower() not in device_alias.lower():
-            all_sensor_data = []
-
     paginator = Paginator(all_sensor_data, 20)
     page_obj = paginator.get_page(page_number)
     sensor_data = page_obj.object_list
@@ -134,7 +129,6 @@ def device_detail(request, device_id):
     context = {
         'device_id': device_id,
         'device_alias': device_alias,
-        'alias_filter': alias_filter,
         'latest': latest,
         'stats': stats,
         'sensor_data': sensor_data,

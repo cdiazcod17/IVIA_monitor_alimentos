@@ -1,277 +1,236 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Detalle dispositivo
-{{ device_id }}{% endblock %} {% block content %}
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Detalle dispositivo {{ device_id }}{% endblock %}
+
+{% block content %}
 <div class="container-fluid py-4 px-3 px-md-4">
-  <div
-    class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4"
-  >
-    <div>
-      <h1 class="h3 fw-semibold mb-1">Detalle del dispositivo</h1>
-      <p class="text-muted mb-1">
-        Dispositivo: <span class="fw-medium">{{ device_id }}</span>
-      </p>
-      <p class="text-muted mb-0">
-        Alias personalizado:
-        <span class="fw-semibold">
-          {% if device_alias %}{{ device_alias }}{% else %}Sin alias{% endif %}
-        </span>
-      </p>
-    </div>
 
-    <div class="d-flex gap-2">
-      <a
-        href="{% url 'devices:list' %}"
-        class="btn btn-outline-secondary btn-sm"
-      >
-        <i class="bi bi-arrow-left me-1"></i>Volver
-      </a>
-      <a
-        href="{% url 'devices:device_download_csv' device_id %}?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}&alias={{ alias_filter }}"
-        class="btn btn-primary btn-sm"
-      >
-        <i class="bi bi-download me-1"></i>Exportar CSV
-      </a>
-    </div>
-  </div>
-
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-md-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <small class="text-muted d-block mb-1">Última lectura</small>
-          {% if latest %}
-          <div class="fw-semibold">{{ latest.dateData }}</div>
-          {% else %}
-          <div class="text-muted">Sin datos</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-6 col-md-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <small class="text-muted d-block mb-1">Temperatura actual</small>
-          {% if latest %}
-          <div class="fw-semibold">
-            {{ latest.temperature|floatformat:1 }} °C
-          </div>
-          {% else %}
-          <div class="text-muted">—</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-6 col-md-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <small class="text-muted d-block mb-1">Humedad actual</small>
-          {% if latest %}
-          <div class="fw-semibold">{{ latest.humidity|floatformat:0 }} %</div>
-          {% else %}
-          <div class="text-muted">—</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-      <form method="GET" class="row g-3 align-items-end">
-        <div class="col-12">
-          <label class="form-label fw-semibold">Periodo</label>
-          <div class="d-flex flex-wrap gap-2">
-            {% for value, label in preset_ranges %}
-            <a
-              href="?range={{ value }}&alias={{ alias_filter }}"
-              class="btn btn-sm {% if range_preset == value %}btn-primary{% else %}btn-outline-primary{% endif %}"
-            >
-              {{ label }}
-            </a>
-            {% endfor %}
-            <a
-              href="?range=custom&alias={{ alias_filter }}"
-              class="btn btn-sm {% if range_preset == 'custom' %}btn-primary{% else %}btn-outline-primary{% endif %}"
-            >
-              Personalizado
-            </a>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <label for="alias" class="form-label">Alias del dispositivo</label>
-          <input
-            type="text"
-            id="alias"
-            name="alias"
-            class="form-control"
-            value="{{ alias_filter }}"
-            placeholder="Ej: Cámara norte"
-          />
-        </div>
-
-        {% if range_preset == 'custom' %}
-        <input type="hidden" name="range" value="custom" />
-
-        <div class="col-12 col-md-4">
-          <label for="date_from" class="form-label">Desde</label>
-          <input
-            type="datetime-local"
-            id="date_from"
-            name="date_from"
-            class="form-control"
-            value="{{ date_from }}"
-          />
-        </div>
-
-        <div class="col-12 col-md-4">
-          <label for="date_to" class="form-label">Hasta</label>
-          <input
-            type="datetime-local"
-            id="date_to"
-            name="date_to"
-            class="form-control"
-            value="{{ date_to }}"
-          />
-        </div>
-        {% else %}
-        <input type="hidden" name="range" value="{{ range_preset }}" />
-        {% endif %}
-
-        <div class="col-12 col-md-4 d-flex gap-2">
-          <button type="submit" class="btn btn-primary w-100">
-            <i class="bi bi-funnel me-1"></i>Aplicar filtro
-          </button>
-          <a
-            href="{% url 'devices:detail' device_id %}?range={{ range_preset }}"
-            class="btn btn-outline-secondary"
-          >
-            Limpiar
-          </a>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-0 pb-0">
-      <div
-        class="d-flex flex-wrap justify-content-between align-items-center gap-2"
-      >
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
-          <h5 class="mb-1">Lecturas del dispositivo</h5>
-          {% if device_alias %}
-          <small class="text-muted">
-            Alias actual: <span class="fw-semibold">{{ device_alias }}</span>
-          </small>
-          {% else %}
-          <small class="text-muted"
-            >Este dispositivo aún no tiene alias personalizado</small
-          >
-          {% endif %}
+            <h1 class="h3 fw-semibold mb-1">Detalle del dispositivo</h1>
+            <p class="text-muted mb-1">
+                Dispositivo: <span class="fw-medium">{{ device_id }}</span>
+            </p>
+            <p class="text-muted mb-0">
+                Alias personalizado:
+                <span class="fw-semibold">
+                    {% if device_alias %}{{ device_alias }}{% else %}Sin alias{% endif %}
+                </span>
+            </p>
         </div>
-        <small class="text-muted">
-          Total mostrados: {{ sensor_data|length }} &middot; Total de registros:
-          {{ page_obj.paginator.count }}
-        </small>
-      </div>
+
+        <div class="d-flex gap-2">
+            <a href="{% url 'devices:list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Volver
+            </a>
+            <a href="{% url 'devices:device_download_csv' device_id %}?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}"
+               class="btn btn-primary btn-sm">
+                <i class="bi bi-download me-1"></i>Exportar CSV
+            </a>
+        </div>
     </div>
 
-    <div class="card-body">
-      {% if sensor_data %}
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Fecha</th>
-              <th>Alias</th>
-              <th>Temperatura</th>
-              <th>Humedad</th>
-              <th>Presión</th>
-              <th>CO2</th>
-              <th>Peso</th>
-              <th>Etileno</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for reading in sensor_data %}
-            <tr>
-              <td>{{ reading.dateData|default:"-" }}</td>
-              <td>
-                {% if device_alias %}{{ device_alias }}{% else %}-{% endif %}
-              </td>
-              <td>{{ reading.temperature|default:"-" }}</td>
-              <td>{{ reading.humidity|default:"-" }}</td>
-              <td>{{ reading.pressure|default:"-" }}</td>
-              <td>{{ reading.co2|default:"-" }}</td>
-              <td>{{ reading.weight|default:"-" }}</td>
-              <td>{{ reading.ethylene|default:"-" }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-1">Última lectura</small>
+                    {% if latest %}
+                        <div class="fw-semibold">{{ latest.dateData }}</div>
+                    {% else %}
+                        <div class="text-muted">Sin datos</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-      {% if page_obj.has_other_pages %}
-      <nav class="mt-4" aria-label="Paginación de lecturas">
-        <ul class="pagination justify-content-center mb-0 flex-wrap">
-          {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?range={{ range_preset }}&alias={{ alias_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page=1"
-            >
-              Primera
-            </a>
-          </li>
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?range={{ range_preset }}&alias={{ alias_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ page_obj.previous_page_number }}"
-            >
-              Anterior
-            </a>
-          </li>
-          {% endif %}
+        <div class="col-6 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-1">Temperatura actual</small>
+                    {% if latest %}
+                        <div class="fw-semibold">{{ latest.temperature|floatformat:1 }} °C</div>
+                    {% else %}
+                        <div class="text-muted">—</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-          <li class="page-item disabled">
-            <span class="page-link">
-              Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-            </span>
-          </li>
-
-          {% if page_obj.has_next %}
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?range={{ range_preset }}&alias={{ alias_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ page_obj.next_page_number }}"
-            >
-              Siguiente
-            </a>
-          </li>
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?range={{ range_preset }}&alias={{ alias_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ page_obj.paginator.num_pages }}"
-            >
-              Última
-            </a>
-          </li>
-          {% endif %}
-        </ul>
-      </nav>
-      {% endif %} {% else %}
-      <div class="text-center py-5 text-muted">
-        <i class="bi bi-table display-6 d-block mb-3 opacity-50"></i>
-        {% if alias_filter %}
-        <p class="mb-0">No hay registros para el alias indicado.</p>
-        {% else %}
-        <p class="mb-0">No hay lecturas disponibles para este dispositivo.</p>
-        {% endif %}
-      </div>
-      {% endif %}
+        <div class="col-6 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-1">Humedad actual</small>
+                    {% if latest %}
+                        <div class="fw-semibold">{{ latest.humidity|floatformat:0 }} %</div>
+                    {% else %}
+                        <div class="text-muted">—</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Periodo</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for value, label in preset_ranges %}
+                            <a href="?range={{ value }}"
+                               class="btn btn-sm {% if range_preset == value %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                {{ label }}
+                            </a>
+                        {% endfor %}
+                        <a href="?range=custom"
+                           class="btn btn-sm {% if range_preset == 'custom' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                            Personalizado
+                        </a>
+                    </div>
+                </div>
+
+                {% if range_preset == 'custom' %}
+                    <input type="hidden" name="range" value="custom">
+
+                    <div class="col-12 col-md-4">
+                        <label for="date_from" class="form-label">Desde</label>
+                        <input
+                            type="datetime-local"
+                            id="date_from"
+                            name="date_from"
+                            class="form-control"
+                            value="{{ date_from }}"
+                        >
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="date_to" class="form-label">Hasta</label>
+                        <input
+                            type="datetime-local"
+                            id="date_to"
+                            name="date_to"
+                            class="form-control"
+                            value="{{ date_to }}"
+                        >
+                    </div>
+                {% else %}
+                    <input type="hidden" name="range" value="{{ range_preset }}">
+                {% endif %}
+
+                <div class="col-12 col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Aplicar filtro
+                    </button>
+                    <a href="{% url 'devices:detail' device_id %}?range={{ range_preset }}"
+                       class="btn btn-outline-secondary">
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pb-0">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h5 class="mb-1">Lecturas del dispositivo</h5>
+                    {% if device_alias %}
+                        <small class="text-muted">
+                            Alias actual: <span class="fw-semibold">{{ device_alias }}</span>
+                        </small>
+                    {% else %}
+                        <small class="text-muted">Este dispositivo aún no tiene alias personalizado</small>
+                    {% endif %}
+                </div>
+                <small class="text-muted">
+                    Total mostrados: {{ sensor_data|length }} &middot; Total de registros: {{ page_obj.paginator.count }}
+                </small>
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% if sensor_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Alias</th>
+                                <th>Temperatura</th>
+                                <th>Humedad</th>
+                                <th>Presión</th>
+                                <th>CO2</th>
+                                <th>Peso</th>
+                                <th>Etileno</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reading in sensor_data %}
+                                <tr>
+                                    <td>{{ reading.dateData|default:"-" }}</td>
+                                    <td>{% if device_alias %}{{ device_alias }}{% else %}-{% endif %}</td>
+                                    <td>{{ reading.temperature|default:"-" }}</td>
+                                    <td>{{ reading.humidity|default:"-" }}</td>
+                                    <td>{{ reading.pressure|default:"-" }}</td>
+                                    <td>{{ reading.co2|default:"-" }}</td>
+                                    <td>{{ reading.weight|default:"-" }}</td>
+                                    <td>{{ reading.ethylene|default:"-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if page_obj.has_other_pages %}
+                    <nav class="mt-4" aria-label="Paginación de lecturas">
+                        <ul class="pagination justify-content-center mb-0 flex-wrap">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}&page=1">
+                                        Primera
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ page_obj.previous_page_number }}">
+                                        Anterior
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ page_obj.next_page_number }}">
+                                        Siguiente
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ page_obj.paginator.num_pages }}">
+                                        Última
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-table display-6 d-block mb-3 opacity-50"></i>
+                    <p class="mb-0">No hay lecturas disponibles para este dispositivo.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}
