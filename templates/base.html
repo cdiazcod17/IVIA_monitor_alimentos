@@ -14,6 +14,8 @@
       rel="stylesheet"
     />
     <link href="{% static 'css/devices-list.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/base_styles.css' %}" rel="stylesheet" />
+
   </head>
   <body class="bg-light">
     {% if user.is_authenticated %}
@@ -22,12 +24,10 @@
         <a class="navbar-brand fw-bold fs-4" href="{% url 'home' %}">
           <i class="bi bi-cpu me-2"></i>IVIA Monitor
         </a>
-        <div class="navbar-nav ms-auto">
-          <span class="navbar-text me-3">
-            <a href="{% url 'devices:list' %}">
-              {{ user.first_name }} {{ user.last_name }}
-            </a>
-          </span>
+        <div class="navbar-nav ms-auto align-items-center">
+          <a class="nav-link active fw-bold fs-4 me-3" href="{% url 'devices:list' %}">
+            {{ user.first_name }}
+          </a>
           <a class="nav-link" href="{% url 'users:signout' %}">
             <i class="bi bi-box-arrow-right"></i> Salir
           </a>
@@ -60,7 +60,7 @@
         <span class="mx-2">•</span>
         <a
           href="https://ivia.gva.es/es/"
-          class="hover:text-ivia-blue font-medium"
+          class="hover-primary text-decoration-none font-medium"
           >ivia.gva.es</a
         >
         <br />
@@ -83,9 +83,9 @@
 
         <!-- Enlaces adicionales -->
         <div class="mt-4 text-xs space-x-4">
-          <a href="/privacy/" class="hover:text-ivia-blue">Privacidad</a>
-          <a href="/contact/" class="hover:text-ivia-blue">Contacto</a>
-          <a href="/docs/" class="hover:text-ivia-blue">Documentación</a>
+          <a href="/privacy/" class="hover-primary text-decoration-none">Privacidad</a>
+          <a href="/contact/" class="hover-primary text-decoration-none">Contacto</a>
+          <a href="/docs/" class="hover-primary text-decoration-none">Documentación</a>
         </div>
       </div>
     </footer>

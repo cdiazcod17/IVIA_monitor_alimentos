@@ -21,7 +21,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 import os
-from decouple import config
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -132,6 +131,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',

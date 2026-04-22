@@ -5,7 +5,30 @@ from django.core.paginator import Paginator
 from .models import Device, UserDevice
 from . import services
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.core.serializers.json import DjangoJSONEncoder
+
+
+@login_required
+def device_readings_json(request, device_id):
+    range_preset = request.GET.get('range', '24h')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    latest = services.get_latest_reading(device_id)
+    
+    all_sensor_data = services.get_filtered_readings(
+        device_id=device_id,
+        range_preset=range_preset,
+        date_from=date_from or None,
+        date_to=date_to or None,
+        limit=20 # Limitamos a los últimos 20 registros, simulando la 1ra página del Paginator
+    )
+
+    return JsonResponse({
+        'latest': latest,
+        'sensor_data': all_sensor_data,
+    }, encoder=DjangoJSONEncoder)
 
 
 @login_required
@@ -129,6 +152,7 @@ def device_detail(request, device_id):
     context = {
         'device_id': device_id,
         'device_alias': device_alias,
+        'user_device': user_device,
         'latest': latest,
         'stats': stats,
         'sensor_data': sensor_data,

@@ -1,0 +1,42 @@
+:root {
+    --bs-primary: #c70f2d;
+    --bs-primary-rgb: 199, 15, 45;
+    --bs-link-color: #c70f2d;
+    --bs-link-hover-color: #9d0b23;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: #a80c26;
+    --bs-btn-hover-border-color: #9d0b23;
+    --bs-btn-active-bg: #9d0b23;
+    --bs-btn-active-border-color: #930a21;
+    --bs-btn-disabled-bg: #e3798a;
+    --bs-btn-disabled-border-color: #e3798a;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--bs-primary);
+    --bs-btn-active-bg: var(--bs-primary);
+    --bs-btn-active-border-color: var(--bs-primary);
+}
+
+.pagination {
+    --bs-pagination-color: var(--bs-primary);
+    --bs-pagination-active-bg: var(--bs-primary);
+    --bs-pagination-active-border-color: var(--bs-primary);
+    --bs-pagination-hover-color: #a80c26;
+}
+
+.hover-primary {
+    color: inherit;
+    transition: color 0.2s ease-in-out;
+}
+
+.hover-primary:hover {
+    color: var(--bs-primary) !important;
+}
