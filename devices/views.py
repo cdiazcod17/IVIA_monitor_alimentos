@@ -10,6 +10,23 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 
 @login_required
+def device_list_latest_json(request):
+    status_filter = request.GET.get('status', 'active')
+    devices = Device.objects.all()
+
+    if status_filter == 'inactive':
+        devices = devices.filter(is_active=False)
+    elif status_filter == 'active':
+        devices = devices.filter(is_active=True)
+    
+    data = {}
+    for device in devices:
+        data[device.device_id] = services.get_latest_reading(device.device_id)
+        
+    return JsonResponse(data, encoder=DjangoJSONEncoder)
+
+
+@login_required
 def device_readings_json(request, device_id):
     range_preset = request.GET.get('range', '24h')
     date_from = request.GET.get('date_from', '')

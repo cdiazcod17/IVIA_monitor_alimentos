@@ -47,9 +47,13 @@
     <div class="col-12 col-md-4">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
+          <small class="text-muted d-block mb-2">
+            Fecha y hora actual: <span class="fw-semibold" id="current-time">{% now "d/m/Y H:i:s" %}</span>
+          </small>
+          <hr class="my-2">
           <small class="text-muted d-block mb-1">Última lectura</small>
           {% if latest %}
-          <div class="fw-semibold" id="kpi-last-read">{{ latest.dateData }}</div>
+          <div class="fw-semibold" id="kpi-last-read">{{ latest.dateData|date:"d/m/Y H:i:s"|default:latest.dateData }}</div>
           {% else %}
           <div class="text-muted" id="kpi-last-read">Sin datos</div>
           {% endif %}
@@ -57,34 +61,87 @@
       </div>
     </div>
 
-    <div class="col-6 col-md-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <small class="text-muted d-block mb-1">Temperatura actual</small>
-          {% if latest %}
-          <div class="fw-semibold" id="kpi-temp">
-            {{ latest.temperature|floatformat:1 }} °C
-          </div>
-          {% else %}
-          <div class="text-muted" id="kpi-temp">—</div>
-          {% endif %}
+    <!-- Grid de variables de monitoreo (Última Lectura) -->
+<div class="row g-3 mb-4">
+    <!-- Temperatura -->
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-3">
+                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                    <i class="bi bi-thermometer-half text-danger fs-4"></i>
+                </div>
+                <h6 class="text-muted mb-1 small">Temperatura</h6>
+                <h5 class="fw-bold mb-0 text-dark" id="kpi-temp">{{ latest.temperature|floatformat:1|default:"--" }}<small class="fs-6 text-muted ms-1">°C</small></h5>
+            </div>
         </div>
-      </div>
     </div>
+    
+    <!-- Humedad -->
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-3">
+                <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                    <i class="bi bi-droplet-fill text-info fs-4"></i>
+                </div>
+                <h6 class="text-muted mb-1 small">Humedad</h6>
+                <h5 class="fw-bold mb-0 text-dark" id="kpi-hum">{{ latest.humidity|floatformat:1|default:"--" }}<small class="fs-6 text-muted ms-1">%</small></h5>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Presión -->
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-3">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                    <i class="bi bi-speedometer2 text-success fs-4"></i>
+                </div>
+                <h6 class="text-muted mb-1 small">Presión</h6>
+                <h5 class="fw-bold mb-0 text-dark" id="kpi-press">{{ latest.pressure|default:"--" }}<small class="fs-6 text-muted ms-1">Pa</small></h5>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CO2 -->
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-3">
+                <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                    <i class="bi bi-cloud-haze2-fill text-secondary fs-4"></i>
+                </div>
+                <h6 class="text-muted mb-1 small">CO2</h6>
+                <h5 class="fw-bold mb-0 text-dark" id="kpi-co2">{{ latest.co2|default:"--" }}<small class="fs-6 text-muted ms-1">ppm</small></h5>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Peso -->
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-3">
+                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                    <i class="bi bi-box-seam-fill text-warning fs-4"></i>
+                </div>
+                <h6 class="text-muted mb-1 small">Peso</h6>
+                <h5 class="fw-bold mb-0 text-dark" id="kpi-weight">{{ latest.weight|default:"--" }}<small class="fs-6 text-muted ms-1">g</small></h5>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Etileno -->
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-3">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                    <i class="bi bi-moisture text-primary fs-4"></i>
+                </div>
+                <h6 class="text-muted mb-1 small">Etileno</h6>
+                <h5 class="fw-bold mb-0 text-dark" id="kpi-ethylene">{{ latest.ethylene|default:"--" }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <div class="col-6 col-md-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <small class="text-muted d-block mb-1">Humedad actual</small>
-          {% if latest %}
-          <div class="fw-semibold" id="kpi-hum">{{ latest.humidity|floatformat:0 }} %</div>
-          {% else %}
-          <div class="text-muted" id="kpi-hum">—</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
@@ -272,6 +329,23 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    // Actualizar reloj de fecha y hora actual
+    function updateClock() {
+      const now = new Date();
+      const timeEl = document.getElementById("current-time");
+      if (timeEl) {
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        timeEl.textContent = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+      }
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
     // Verificamos si hay paginación. Solo activamos el "autorefresh" si estamos
     // en la página 1 o si no hay parámetro de página, para evitar que el usuario
     // pierda el contexto si está revisando el historial en páginas anteriores.
@@ -317,8 +391,8 @@
             if (tbody) {
               tbody.innerHTML = ""; 
               data.sensor_data.forEach((row) => {
-                const temp = row.temperature !== null ? (row.temperature / 100).toFixed(2) + " °C" : "-";
-                const hum = row.humidity !== null ? (row.humidity / 100).toFixed(2) + " %" : "-";
+                const temp = row.temperature !== null ? parseFloat(row.temperature).toFixed(2) + " °C" : "-";
+                const hum = row.humidity !== null ? parseFloat(row.humidity).toFixed(2) + " %" : "-";
                 const alias = "{% if device_alias %}{{ device_alias|escapejs }}{% else %}-{% endif %}";
 
                 const tr = document.createElement("tr");
@@ -346,18 +420,46 @@
             const kpiLastRead = document.getElementById("kpi-last-read");
             const kpiTemp = document.getElementById("kpi-temp");
             const kpiHum = document.getElementById("kpi-hum");
+            const kpiPress = document.getElementById("kpi-press");
+            const kpiCO2 = document.getElementById("kpi-co2");
+            const kpiWeight = document.getElementById("kpi-weight");
+            const kpiEth = document.getElementById("kpi-ethylene");
 
             if (kpiLastRead) {
-              kpiLastRead.innerText = data.latest.dateData;
-              kpiLastRead.className = "fw-semibold"; // Quitamos el estilo atenuado si antes era "Sin datos"
+              let formattedDate = data.latest.dateData;
+              if (formattedDate) {
+                const d = new Date(formattedDate);
+                if (!isNaN(d.getTime())) {
+                  const day = String(d.getDate()).padStart(2, '0');
+                  const month = String(d.getMonth() + 1).padStart(2, '0');
+                  const year = d.getFullYear();
+                  const hours = String(d.getHours()).padStart(2, '0');
+                  const minutes = String(d.getMinutes()).padStart(2, '0');
+                  const seconds = String(d.getSeconds()).padStart(2, '0');
+                  formattedDate = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                }
+              }
+              kpiLastRead.innerText = formattedDate || data.latest.dateData;
+              kpiLastRead.className = "fw-semibold"; 
             }
-            if (kpiTemp) {
-              kpiTemp.innerText = (data.latest.temperature / 100).toFixed(1) + " °C";
-              kpiTemp.className = "fw-semibold";
+            
+            if (kpiTemp && data.latest.temperature !== null) {
+              kpiTemp.innerHTML = `${parseFloat(data.latest.temperature).toFixed(1)}<small class="fs-6 text-muted ms-1">°C</small>`;
             }
-            if (kpiHum) {
-              kpiHum.innerText = (data.latest.humidity / 100).toFixed(0) + " %";
-              kpiHum.className = "fw-semibold";
+            if (kpiHum && data.latest.humidity !== null) {
+              kpiHum.innerHTML = `${parseFloat(data.latest.humidity).toFixed(1)}<small class="fs-6 text-muted ms-1">%</small>`;
+            }
+            if (kpiPress && data.latest.pressure !== null) {
+              kpiPress.innerHTML = `${data.latest.pressure}<small class="fs-6 text-muted ms-1">Pa</small>`;
+            }
+            if (kpiCO2 && data.latest.co2 !== null) {
+              kpiCO2.innerHTML = `${data.latest.co2}<small class="fs-6 text-muted ms-1">ppm</small>`;
+            }
+            if (kpiWeight && data.latest.weight !== null) {
+              kpiWeight.innerHTML = `${data.latest.weight}<small class="fs-6 text-muted ms-1">g</small>`;
+            }
+            if (kpiEth && data.latest.ethylene !== null) {
+              kpiEth.innerText = data.latest.ethylene;
             }
           }
         })
