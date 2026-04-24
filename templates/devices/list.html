@@ -110,15 +110,15 @@
                                 </div>
                             </div>
 
-                            <div class="border-top pt-2 mt-auto">
+                            <div class="border-top pt-2 mt-auto" id="device-latest-{{ item.device.device_id }}">
                                 {% if item.latest %}
                                     <div class="d-flex flex-column gap-1">
-                                        <small class="text-muted">{{ item.latest.dateData }}</small>
+                                        <small class="text-muted latest-date">{{ item.latest.dateData }}</small>
                                         <div class="d-flex gap-3 flex-wrap">
-                                            <small class="fw-medium text-body">
+                                            <small class="fw-medium text-body latest-temp">
                                                 {{ item.latest.temperature|floatformat:1 }} °C
                                             </small>
-                                            <small class="text-muted">
+                                            <small class="text-muted latest-hum">
                                                 {{ item.latest.humidity|floatformat:0 }} %
                                             </small>
                                         </div>
@@ -128,33 +128,78 @@
                                 {% endif %}
                             </div>
 
-                        </div>
-                    </div>
-                </a>
-            </div>
-        {% empty %}
-            <div class="col-12 text-center py-5 text-muted">
-                <i class="bi bi-cpu display-4 mb-3 d-block opacity-25"></i>
-                <p class="mb-3">No hay dispositivos configurados</p>
-                <a href="{% url 'devices:add' %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus-circle me-1"></i>Añadir dispositivo
-                </a>
-            </div>
-        {% endfor %}
-    </div>
-</div>
+                            </div>
+                            </div>
+                            </a>
+                            </div>
+                            {% empty %}
+                            <div class="col-12 text-center py-5 text-muted">
+                            <i class="bi bi-cpu display-4 mb-3 d-block opacity-25"></i>
+                            <p class="mb-3">No hay dispositivos configurados</p>
+                            <a href="{% url 'devices:add' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i>Añadir dispositivo
+                            </a>
+                            </div>
+                            {% endfor %}
+                            </div>
+                            </div>
 
-<script>
-    if (new URLSearchParams(window.location.search).get('status')) {
-        setTimeout(() => {
-            const group = document.querySelector('.btn-group');
-            if (group) {
-                group.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-            }
-        }, 200);
-    }
-</script>
-{% endblock %}
+                            <script>
+                            document.addEventListener("DOMContentLoaded", function() {
+                            if (new URLSearchParams(window.location.search).get('status')) {
+                            setTimeout(() => {
+                            const group = document.querySelector('.btn-group');
+                            if (group) {
+                            group.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                            });
+                            }
+                            }, 200);
+                            }
+
+                            // Auto-refresh cada 5 segundos
+                            setInterval(refreshDeviceList, 5000);
+
+                            function refreshDeviceList() {
+                            const status = new URLSearchParams(window.location.search).get('status') || 'active';
+                            fetch(`{% url 'devices:list_latest_json' %}?status=${status}`)
+                            .then(response => response.json())
+                            .then(data => {
+                            for (const [deviceId, latest] of Object.entries(data)) {
+                            const container = document.getElementById(`device-latest-${deviceId}`);
+                            if (!container) continue;
+
+                            if (latest) {
+                            let dateStr = latest.dateData;
+                            // Intentar formatear la fecha si es posible
+                            try {
+                                const d = new Date(latest.dateData);
+                                if (!isNaN(d.getTime())) {
+                                    dateStr = d.toLocaleString();
+                                }
+                            } catch(e) {}
+
+                            container.innerHTML = `
+                                <div class="d-flex flex-column gap-1">
+                                    <small class="text-muted latest-date">${dateStr}</small>
+                                    <div class="d-flex gap-3 flex-wrap">
+                                        <small class="fw-medium text-body latest-temp">
+                                            ${parseFloat(latest.temperature).toFixed(1)} °C
+                                        </small>
+                                        <small class="text-muted latest-hum">
+                                            ${parseFloat(latest.humidity).toFixed(0)} %
+                                        </small>
+                                    </div>
+                                </div>
+                            `;
+                            } else {
+                            container.innerHTML = '<small class="text-muted">Sin lecturas aún</small>';
+                            }
+                            }
+                            })
+                            .catch(error => console.error('Error refreshing device list:', error));
+                            }
+                            });
+                            </script>
+                            {% endblock %}

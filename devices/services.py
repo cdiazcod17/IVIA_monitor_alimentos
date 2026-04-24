@@ -9,8 +9,8 @@ def get_sensor_data(device_id: int, limit: int = 50) -> list[dict]:
             cursor.execute("""
             SELECT
                 device_id,
-                temperature as temperature,
-                humidity as humidity,
+                temperature / 100.0 as temperature,
+                humidity / 100.0 as humidity,
                 pressure,
                 co2,
                 weight,
@@ -54,24 +54,24 @@ def build_filter(range_preset, date_from=None, date_to=None):
 def get_device_stats(device_id, range_preset='24h', date_from=None, date_to=None):
     """Estadísticas agregadas (avg, max, min, count) del dispositivo."""
     where, extra_params = build_filter(range_preset, date_from, date_to)
-    
+
     with connections['sensors'].cursor() as cursor:
         cursor.execute(f"""
             SELECT
-                AVG(temperature), AVG(humidity),
-                MAX(temperature), MIN(temperature),
-                MAX(humidity),    MIN(humidity),
+                AVG(temperature) / 100.0, AVG(humidity) / 100.0,
+                MAX(temperature) / 100.0, MIN(temperature) / 100.0,
+                MAX(humidity) / 100.0,    MIN(humidity) / 100.0,
                 COUNT(*),
                 MAX(dateData)
             FROM sensor_readings
             WHERE device_id = %s {where}
         """, [device_id] + extra_params)
-        
+
         row = cursor.fetchone()
-    
+
     if not row or row[6] == 0:
         return None
-    
+
     return {
         'avg_temp':  round(row[0], 1) if row[0] else None,
         'avg_hum':   round(row[1], 1) if row[1] else None,
@@ -87,10 +87,14 @@ def get_device_stats(device_id, range_preset='24h', date_from=None, date_to=None
 def get_filtered_readings(device_id, range_preset='24h', date_from=None, date_to=None, limit=200):
     """Lecturas filtradas por rango para tabla y descarga."""
     where, extra_params = build_filter(range_preset, date_from, date_to)
-    
+
     with connections['sensors'].cursor() as cursor:
         cursor.execute(f"""
-            SELECT dateData, temperature, humidity, pressure, co2, weight, ethylene
+            SELECT 
+                dateData, 
+                temperature / 100.0 as temperature, 
+                humidity / 100.0 as humidity, 
+                pressure, co2, weight, ethylene
             FROM sensor_readings
             WHERE device_id = %s {where}
             ORDER BY dateData DESC
