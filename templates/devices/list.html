@@ -1,6 +1,7 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}Dispositivos - Pot Monitor IVIA{% endblock %}
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block title %}Dispositivos - Pot Monitor IVIA{% endblock %} 
 
 {% block content %}
 <div class="container-fluid py-4 px-3 px-md-4">
@@ -11,195 +12,180 @@
                 <span class="badge text-bg-secondary fw-normal">{{ devices|length }}</span>
             </div>
             {% if total_active %}
-                <p class="text-muted small mb-0">
-                    {{ total_active }} activos &middot; {{ total_inactive }} inactivos
-                </p>
+            <p class="text-muted small mb-0">
+                {{ total_active }} activos &middot; {{ total_inactive }} inactivos
+            </p>
             {% endif %}
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <div class="btn-group btn-group-sm" role="group" aria-label="Filtrar dispositivos">
-                <a href="{% url 'devices:list' %}?status=all"
-                   class="btn btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">
-                    Todos
-                </a>
-                <a href="{% url 'devices:list' %}?status=active"
-                   class="btn btn-outline-secondary {% if status_filter == 'active' %}active{% endif %}">
-                    Activos
-                </a>
-                <a href="{% url 'devices:list' %}?status=inactive"
-                   class="btn btn-outline-secondary {% if status_filter == 'inactive' %}active{% endif %}">
-                    Inactivos
-                </a>
+                <a href="{% url 'devices:list' %}?status=all" class="btn btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">Todos</a>
+                <a href="{% url 'devices:list' %}?status=active" class="btn btn-outline-secondary {% if status_filter == 'active' %}active{% endif %}">Activos</a>
+                <a href="{% url 'devices:list' %}?status=inactive" class="btn btn-outline-secondary {% if status_filter == 'inactive' %}active{% endif %}">Inactivos</a>
             </div>
-
             <a href="{% url 'devices:add' %}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus me-1"></i>Personalizar dispositivo
             </a>
         </div>
     </div>
 
+    {% if error_message %}
+    <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>{{ error_message }}</div>
+    </div>
+    {% else %}
     <div class="row g-3 g-md-4">
         {% for item in devices %}
-            <div class="col-xl-3 col-lg-4 col-md-6">
-                <a href="{% url 'devices:detail' item.device.device_id %}" class="text-decoration-none d-block h-100">
-                    <div class="card h-100 border-0 shadow-sm device-card">
-                        <div class="card-body p-3 p-md-4 d-flex flex-column gap-3">
-
-                            <div class="d-flex align-items-start justify-content-between gap-2 device-card__header">
-                                <div class="flex-grow-1 device-card__content">
-                                    <h6 class="fw-semibold mb-0 text-body text-truncate">
-                                        {% if item.user_device and item.user_device.alias %}
-                                            {{ item.user_device.alias }}
-                                        {% else %}
-                                            {{ item.device.default_name }}
-                                        {% endif %}
-                                    </h6>
-
-                                    <small class="text-muted d-block text-truncate">
-                                        ID: {{ forloop.counter }}
-                                    </small>
-
-                                    {% if item.device.location %}
-                                        <small class="text-muted d-block text-truncate">
-                                            {{ item.device.location }}
-                                        </small>
-                                    {% endif %}
-
-                                    {% if item.user_device and item.user_device.food_name %}
-                                        <small class="text-primary d-block mt-1 text-truncate">
-                                            {{ item.user_device.food_name }}
-                                        </small>
-                                    {% endif %}
-
-                                    {% if item.user_device and item.user_device.notes %}
-                                        <p class="device-card__notes text-muted mb-0 mt-1">
-                                            {{ item.user_device.notes }}
-                                        </p>
-                                    {% endif %}
-                                </div>
-
-                                <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
-                                    {% if item.device.is_active %}
-                                        <span class="badge text-bg-success">Activo</span>
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="{% url 'devices:detail' item.device.device_id %}" class="text-decoration-none d-block h-100">
+                <div class="card h-100 border-0 shadow-sm device-card">
+                    <div class="card-body p-3 p-md-4 d-flex flex-column gap-3">
+                        <div class="d-flex align-items-start justify-content-between gap-2 device-card__header">
+                            <div class="flex-grow-1 device-card__content">
+                                <h6 class="fw-semibold mb-0 text-body text-truncate">
+                                    {% if item.user_device and item.user_device.alias %}
+                                        {{ item.user_device.alias }}
                                     {% else %}
-                                        <span class="badge text-bg-secondary">Inactivo</span>
+                                        {{ item.device.default_name }}
                                     {% endif %}
-
-                                    {% if item.device.is_active %}
-                                        <form method="post" action="{% url 'devices:disable' %}" class="m-0">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger px-2 py-0"
-                                                    onclick="return confirm('¿Desactivar {{ item.device.default_name }}?')">
-                                                Off
-                                            </button>
-                                        </form>
-                                    {% else %}
-                                        <form method="post" action="{% url 'devices:enable' %}" class="m-0">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-success px-2 py-0"
-                                                    onclick="return confirm('¿Activar {{ item.device.default_name }}?')">
-                                                On
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="border-top pt-2 mt-auto" id="device-latest-{{ item.device.device_id }}">
-                                {% if item.latest %}
-                                    <div class="d-flex flex-column gap-1">
-                                        <small class="text-muted latest-date">{{ item.latest.dateData }}</small>
-                                        <div class="d-flex gap-3 flex-wrap">
-                                            <small class="fw-medium text-body latest-temp">
-                                                {{ item.latest.temperature|floatformat:1 }} °C
-                                            </small>
-                                            <small class="text-muted latest-hum">
-                                                {{ item.latest.humidity|floatformat:0 }} %
-                                            </small>
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <small class="text-muted">Sin lecturas aún</small>
+                                </h6>
+                                <small class="text-muted d-block text-truncate">ID: {{ item.device.device_id }}</small>
+                                
+                                {% if item.device.location %}
+                                <small class="text-muted d-block text-truncate">{{ item.device.location }}</small>
+                                {% endif %}
+                                
+                                {% if item.user_device and item.user_device.food_name %}
+                                <small class="text-primary d-block mt-1 text-truncate">{{ item.user_device.food_name }}</small>
+                                {% endif %}
+                                
+                                {% if item.user_device and item.user_device.notes %}
+                                <p class="device-card__notes text-muted mb-0 mt-1 small text-truncate">{{ item.user_device.notes }}</p>
                                 {% endif %}
                             </div>
 
+                            <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
+                                {% if item.device.is_active %}
+                                    <span class="badge text-bg-success">Activo</span>
+                                    <form method="post" action="{% url 'devices:disable' %}" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-0" onclick="event.stopPropagation(); return confirm('¿Desactivar {{ item.device.default_name }}?')">Off</button>
+                                    </form>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Inactivo</span>
+                                    <form method="post" action="{% url 'devices:enable' %}" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-success px-2 py-0" onclick="event.stopPropagation(); return confirm('¿Activar {{ item.device.default_name }}?')">On</button>
+                                    </form>
+                                {% endif %}
                             </div>
-                            </div>
-                            </a>
-                            </div>
-                            {% empty %}
-                            <div class="col-12 text-center py-5 text-muted">
-                            <i class="bi bi-cpu display-4 mb-3 d-block opacity-25"></i>
-                            <p class="mb-3">No hay dispositivos configurados</p>
-                            <a href="{% url 'devices:add' %}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-circle me-1"></i>Añadir dispositivo
-                            </a>
-                            </div>
-                            {% endfor %}
-                            </div>
-                            </div>
+                        </div>
 
-                            <script>
-                            document.addEventListener("DOMContentLoaded", function() {
-                            if (new URLSearchParams(window.location.search).get('status')) {
-                            setTimeout(() => {
-                            const group = document.querySelector('.btn-group');
-                            if (group) {
-                            group.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                            });
-                            }
-                            }, 200);
-                            }
-
-                            // Auto-refresh cada 5 segundos
-                            setInterval(refreshDeviceList, 5000);
-
-                            function refreshDeviceList() {
-                            const status = new URLSearchParams(window.location.search).get('status') || 'active';
-                            fetch(`{% url 'devices:list_latest_json' %}?status=${status}`)
-                            .then(response => response.json())
-                            .then(data => {
-                            for (const [deviceId, latest] of Object.entries(data)) {
-                            const container = document.getElementById(`device-latest-${deviceId}`);
-                            if (!container) continue;
-
-                            if (latest) {
-                            let dateStr = latest.dateData;
-                            // Intentar formatear la fecha si es posible
-                            try {
-                                const d = new Date(latest.dateData);
-                                if (!isNaN(d.getTime())) {
-                                    dateStr = d.toLocaleString();
-                                }
-                            } catch(e) {}
-
-                            container.innerHTML = `
-                                <div class="d-flex flex-column gap-1">
-                                    <small class="text-muted latest-date">${dateStr}</small>
-                                    <div class="d-flex gap-3 flex-wrap">
-                                        <small class="fw-medium text-body latest-temp">
-                                            ${parseFloat(latest.temperature).toFixed(1)} °C
-                                        </small>
-                                        <small class="text-muted latest-hum">
-                                            ${parseFloat(latest.humidity).toFixed(0)} %
-                                        </small>
-                                    </div>
+                        <div class="border-top pt-2 mt-auto" id="device-latest-{{ item.device.device_id }}">
+                            <div class="d-flex align-items-center gap-2 text-muted">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
                                 </div>
-                            `;
-                            } else {
-                            container.innerHTML = '<small class="text-muted">Sin lecturas aún</small>';
+                                <small>Cargando datos...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="bi bi-cpu display-4 mb-3 d-block opacity-25"></i>
+            <p class="mb-3">No hay dispositivos configurados</p>
+            <a href="{% url 'devices:add' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Añadir dispositivo
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let refreshInterval; // Variable para controlar el temporizador
+
+    if (new URLSearchParams(window.location.search).get("status")) {
+        setTimeout(() => {
+            const group = document.querySelector(".btn-group");
+            if (group) {
+                group.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }, 200);
+    }
+
+    // Solo iniciar el refresco si no hay un mensaje de error inicial
+    {% if not error_message %}
+    refreshInterval = setInterval(refreshDeviceList, 5000);
+    refreshDeviceList(); 
+    {% endif %}
+
+    function refreshDeviceList() {
+        const status = new URLSearchParams(window.location.search).get("status") || "active";
+        fetch(`{% url 'devices:list_latest_json' %}?status=${status}`)
+            .then(response => {
+                if (!response.ok) {
+                    // Si el servidor responde con error (ej. 503), detenemos el refresco
+                    if (response.status === 503) {
+                        console.warn("Conexión perdida con la base de datos de sensores. Deteniendo actualizaciones.");
+                        clearInterval(refreshInterval);
+                        // Opcional: Recargar la página para mostrar el mensaje de error global
+                        window.location.reload();
+                    }
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    clearInterval(refreshInterval);
+                    return;
+                };
+                
+                for (const [deviceId, latest] of Object.entries(data)) {
+                    const container = document.getElementById(`device-latest-${deviceId}`);
+                    if (!container) continue;
+
+                    if (latest) {
+                        let dateStr = latest.dateData;
+                        try {
+                            const d = new Date(latest.dateData);
+                            if (!isNaN(d.getTime())) {
+                                dateStr = d.toLocaleString();
                             }
-                            }
-                            })
-                            .catch(error => console.error('Error refreshing device list:', error));
-                            }
-                            });
-                            </script>
-                            {% endblock %}
+                        } catch (e) {}
+
+                        container.innerHTML = `
+                            <div class="d-flex flex-column gap-1">
+                                <small class="text-muted latest-date">${dateStr}</small>
+                                <div class="d-flex gap-3 flex-wrap">
+                                    <small class="fw-medium text-body latest-temp">
+                                        ${parseFloat(latest.temperature).toFixed(1)} °C
+                                    </small>
+                                    <small class="text-muted latest-hum">
+                                        ${parseFloat(latest.humidity).toFixed(0)} %
+                                    </small>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = '<small class="text-muted">Sin lecturas aún</small>';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error refreshing device list:", error);
+            });
+    }
+});
+</script>
+{% endblock %}

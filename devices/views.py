@@ -12,18 +12,21 @@ from django.core.serializers.json import DjangoJSONEncoder
 @login_required
 def device_list_latest_json(request):
     status_filter = request.GET.get('status', 'active')
-    devices = Device.objects.all()
+    try:
+        devices = Device.objects.all()
 
-    if status_filter == 'inactive':
-        devices = devices.filter(is_active=False)
-    elif status_filter == 'active':
-        devices = devices.filter(is_active=True)
-    
-    data = {}
-    for device in devices:
-        data[device.device_id] = services.get_latest_reading(device.device_id)
+        if status_filter == 'inactive':
+            devices = devices.filter(is_active=False)
+        elif status_filter == 'active':
+            devices = devices.filter(is_active=True)
         
-    return JsonResponse(data, encoder=DjangoJSONEncoder)
+        data = {}
+        for device in devices:
+            data[device.device_id] = services.get_latest_reading(device.device_id)
+            
+        return JsonResponse(data, encoder=DjangoJSONEncoder)
+    except services.DatabaseConnectionError as e:
+        return JsonResponse({'error': str(e)}, status=503)
 
 
 @login_required
@@ -32,53 +35,71 @@ def device_readings_json(request, device_id):
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
 
-    latest = services.get_latest_reading(device_id)
-    
-    all_sensor_data = services.get_filtered_readings(
-        device_id=device_id,
-        range_preset=range_preset,
-        date_from=date_from or None,
-        date_to=date_to or None,
-        limit=20 # Limitamos a los últimos 20 registros, simulando la 1ra página del Paginator
-    )
+    try:
+        latest = services.get_latest_reading(device_id)
+        
+        all_sensor_data = services.get_filtered_readings(
+            device_id=device_id,
+            range_preset=range_preset,
+            date_from=date_from or None,
+            date_to=date_to or None,
+            limit=20 # Limitamos a los últimos 20 registros, simulando la 1ra página del Paginator
+        )
 
-    return JsonResponse({
-        'latest': latest,
-        'sensor_data': all_sensor_data,
-    }, encoder=DjangoJSONEncoder)
+        return JsonResponse({
+            'latest': latest,
+            'sensor_data': all_sensor_data,
+        }, encoder=DjangoJSONEncoder)
+    except services.DatabaseConnectionError as e:
+        return JsonResponse({'error': str(e)}, status=503)
 
 
 @login_required
 def device_list(request):
     # Filtro por GET
     status_filter = request.GET.get('status', 'active')
-    devices = Device.objects.all().order_by('id')
+    try:
+        # Verificamos conexión antes de proceder
+        services.check_connection()
 
-    if status_filter == 'inactive':
-        devices = devices.filter(is_active=False)
-    elif status_filter == 'active':
-        devices = devices.filter(is_active=True)
+        devices = Device.objects.all().order_by('id')
 
-    user_links = {
-        link.device_id: link
-        for link in UserDevice.objects.filter(user=request.user)
-    }
+        if status_filter == 'inactive':
+            devices = devices.filter(is_active=False)
+        elif status_filter == 'active':
+            devices = devices.filter(is_active=True)
 
-    devices_with_data = []
-    for device in devices:
-        devices_with_data.append({
-            'device': device,
-            'user_device': user_links.get(device.id),
-            'latest': services.get_latest_reading(device.device_id),
-        })
+        user_links = {
+            link.device_id: link
+            for link in UserDevice.objects.filter(user=request.user)
+        }
 
-    context = {
-        'devices': devices_with_data,
-        'status_filter': status_filter,
-        'total_active': Device.objects.filter(is_active=True).count(),
-        'total_inactive': Device.objects.filter(is_active=False).count(),
-    }
-    return render(request, 'devices/list.html', context)
+        devices_with_data = []
+        for device in devices:
+            devices_with_data.append({
+                'device': device,
+                'user_device': user_links.get(device.id),
+                'latest': None, # Se cargará asíncronamente vía JavaScript
+            })
+
+        context = {
+            'devices': devices_with_data,
+            'status_filter': status_filter,
+            'total_active': Device.objects.filter(is_active=True).count(),
+            'total_inactive': Device.objects.filter(is_active=False).count(),
+        }
+        return render(request, 'devices/list.html', context)
+    except services.DatabaseConnectionError as e:
+        context = {
+            'error_message': str(e),
+            'status_filter': status_filter,
+            'devices': [],
+        }
+        return render(request, 'devices/list.html', context)
+    except Exception as e:
+        messages.warning(request, f'Ocurrió un error inesperado: {str(e)}')
+        return render(request, 'devices/list.html', {'devices': [], 'status_filter': status_filter})
+    
 
 
 @login_required
@@ -143,43 +164,47 @@ def device_detail(request, device_id):
     date_to = request.GET.get('date_to', '')
     page_number = request.GET.get('page')
 
-    latest = services.get_latest_reading(device_id)
-    stats = services.get_device_stats(device_id, range_preset, date_from, date_to)
+    try:
+        latest = services.get_latest_reading(device_id)
+        stats = services.get_device_stats(device_id, range_preset, date_from, date_to)
 
-    user_device = UserDevice.objects.filter(
-        user=request.user,
-        device__device_id=device_id
-    ).select_related('device').first()
+        user_device = UserDevice.objects.filter(
+            user=request.user,
+            device__device_id=device_id
+        ).select_related('device').first()
 
-    device_alias = ''
-    if user_device and user_device.alias:
-        device_alias = user_device.alias.strip()
+        device_alias = ''
+        if user_device and user_device.alias:
+            device_alias = user_device.alias.strip()
 
-    all_sensor_data = services.get_filtered_readings(
-        device_id=device_id,
-        range_preset=range_preset,
-        date_from=date_from or None,
-        date_to=date_to or None,
-    )
+        all_sensor_data = services.get_filtered_readings(
+            device_id=device_id,
+            range_preset=range_preset,
+            date_from=date_from or None,
+            date_to=date_to or None,
+        )
 
-    paginator = Paginator(all_sensor_data, 20)
-    page_obj = paginator.get_page(page_number)
-    sensor_data = page_obj.object_list
+        paginator = Paginator(all_sensor_data, 20)
+        page_obj = paginator.get_page(page_number)
+        sensor_data = page_obj.object_list
 
-    context = {
-        'device_id': device_id,
-        'device_alias': device_alias,
-        'user_device': user_device,
-        'latest': latest,
-        'stats': stats,
-        'sensor_data': sensor_data,
-        'page_obj': page_obj,
-        'range_preset': range_preset,
-        'date_from': date_from,
-        'date_to': date_to,
-        'preset_ranges': [('1h', '1h'), ('6h', '6h'), ('24h', '24h'), ('7d', '7 días')],
-    }
-    return render(request, 'devices/detail.html', context)
+        context = {
+            'device_id': device_id,
+            'device_alias': device_alias,
+            'user_device': user_device,
+            'latest': latest,
+            'stats': stats,
+            'sensor_data': sensor_data,
+            'page_obj': page_obj,
+            'range_preset': range_preset,
+            'date_from': date_from,
+            'date_to': date_to,
+            'preset_ranges': [('1h', '1h'), ('6h', '6h'), ('24h', '24h'), ('7d', '7 días')],
+        }
+        return render(request, 'devices/detail.html', context)
+    except services.DatabaseConnectionError as e:
+        messages.error(request, str(e))
+        return redirect('devices:list')
 
 
 @login_required
@@ -188,28 +213,32 @@ def device_download_csv(request, device_id):
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
 
-    readings = services.get_filtered_readings(
-        device_id, range_preset, date_from, date_to, limit=99999
-    )
+    try:
+        readings = services.get_filtered_readings(
+            device_id, range_preset, date_from, date_to, limit=99999
+        )
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{device_id}_{range_preset}.csv"'
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{device_id}_{range_preset}.csv"'
 
-    writer = csv.writer(response)
-    writer.writerow(['Fecha', 'Temperatura', 'Humedad', 'Presion', 'CO2', 'Peso', 'Etileno'])
+        writer = csv.writer(response)
+        writer.writerow(['Fecha', 'Temperatura', 'Humedad', 'Presion', 'CO2', 'Peso', 'Etileno'])
 
-    for r in readings:
-        writer.writerow([
-            r['dateData'],
-            r['temperature'],
-            r['humidity'],
-            r['pressure'],
-            r['co2'],
-            r['weight'],
-            r['ethylene']
-        ])
+        for r in readings:
+            writer.writerow([
+                r['dateData'],
+                r['temperature'],
+                r['humidity'],
+                r['pressure'],
+                r['co2'],
+                r['weight'],
+                r['ethylene']
+            ])
 
-    return response
+        return response
+    except services.DatabaseConnectionError as e:
+        messages.error(request, str(e))
+        return redirect('devices:detail', device_id=device_id)
 
 
 @login_required

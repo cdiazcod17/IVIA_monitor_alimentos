@@ -91,6 +91,7 @@ DATABASES = {
         'PORT':os.getenv('PORT'),
         'OPTIONS':{
             'charset': 'utf8mb4',
+            'connect_timeout': 2, # Tiempo máximo de espera reducido para respuesta rápida
         }
     }
 }
