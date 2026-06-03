@@ -27,6 +27,9 @@
             <a href="{% url 'devices:add' %}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus me-1"></i>Personalizar dispositivo
             </a>
+            <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#adminPanelModal">
+                <i class="bi bi-gear me-1"></i>Panel Admin
+            </button>
         </div>
     </div>
 
@@ -64,24 +67,37 @@
                                 {% if item.user_device and item.user_device.notes %}
                                 <p class="device-card__notes text-muted mb-0 mt-1 small text-truncate">{{ item.user_device.notes }}</p>
                                 {% endif %}
+                                
+                                <!-- Estado y Configuración -->
+                                <div class="mt-2 d-flex gap-2 flex-wrap align-items-center">
+                                    <span class="badge device-status-badge-{{ item.device.device_id }}" id="status-badge-{{ item.device.device_id }}"
+                                          style="transition: all 0.3s ease;">
+                                        {% if item.device.is_active %}
+                                            <i class="bi bi-circle-fill" style="color: #28a745;"></i> Online
+                                        {% else %}
+                                            <i class="bi bi-circle-fill" style="color: #6c757d;"></i> Offline
+                                        {% endif %}
+                                    </span>
+                                    <span class="badge bg-info device-freq-badge-{{ item.device.device_id }}" style="font-size: 0.75rem;">
+                                        ⚡ -- s
+                                    </span>
+                                </div>
                             </div>
 
-                            <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
-                                {% if item.device.is_active %}
-                                    <span class="badge text-bg-success">Activo</span>
-                                    <form method="post" action="{% url 'devices:disable' %}" class="m-0">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-0" onclick="event.stopPropagation(); return confirm('¿Desactivar {{ item.device.default_name }}?')">Off</button>
-                                    </form>
-                                {% else %}
-                                    <span class="badge text-bg-secondary">Inactivo</span>
-                                    <form method="post" action="{% url 'devices:enable' %}" class="m-0">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-success px-2 py-0" onclick="event.stopPropagation(); return confirm('¿Activar {{ item.device.default_name }}?')">On</button>
-                                    </form>
-                                {% endif %}
+                            <div class="flex-shrink-0 power-switch-container">
+                                <div class="form-check form-switch p-0 m-0">
+                                    <input class="form-check-input ms-0 device-power-toggle" type="checkbox" role="switch" 
+                                           id="powerSwitch-{{ item.device.device_id }}"
+                                           data-device-id="{{ item.device.device_id }}"
+                                           data-device-name="{% if item.user_device and item.user_device.alias %}{{ item.user_device.alias }}{% else %}{{ item.device.default_name }}{% endif %}"
+                                           {% if item.device.is_active %}checked{% endif %}>
+                                </div>
+                                <small class="power-label {% if item.device.is_active %}on{% else %}off{% endif %}" id="powerLabel-{{ item.device.device_id }}">
+                                    {% if item.device.is_active %}ON{% else %}OFF{% endif %}
+                                </small>
+                                <small class="text-muted text-end pending-command-indicator-{{ item.device.device_id }}" style="font-size: 0.7rem; min-height: 14px;">
+                                    <!-- Indicador de comando pendiente -->
+                                </small>
                             </div>
                         </div>
 
@@ -110,9 +126,111 @@
     {% endif %}
 </div>
 
+<!-- Modal Panel de Administración -->
+<div class="modal fade" id="adminPanelModal" tabindex="-1" aria-labelledby="adminPanelLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="adminPanelLabel">
+                    <i class="bi bi-gear me-2"></i>Panel de Administración
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Sección: Configuración Global -->
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-3 border-bottom pb-2">
+                        <i class="bi bi-sliders me-2"></i>Configuración Global
+                    </h6>
+                    <form method="post" action="{% url 'devices:set_global_frequency' %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="globalFrequency" class="form-label">Intervalo (segundos)</label>
+                                <input type="number" class="form-control" id="globalFrequency" name="frequency" 
+                                    min="1" max="3600" value="2" step="1" required>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="bi bi-info-circle"></i> Recomendado: 1-10 segundos
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="globalPower" class="form-label">Estado</label>
+                                <select class="form-select" id="globalPower" name="power">
+                                    <option value="1">Encendido</option>
+                                    <option value="0">Apagado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            <i class="bi bi-arrow-repeat me-2"></i>Aplicar a Todos
+                        </button>
+                    </form>
+                </div>
+
+                <hr>
+
+                <!-- Sección: Configuración Individual -->
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-3 border-bottom pb-2">
+                        <i class="bi bi-device-hdd me-2"></i>Configuración Individual
+                    </h6>
+                    <form method="post" action="{% url 'devices:set_device_frequency' %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="deviceSelect" class="form-label">Dispositivo</label>
+                                <select class="form-select" id="deviceSelect" name="device_id" required>
+                                    <option value="">-- Selecciona --</option>
+                                    {% for item in devices %}
+                                    <option value="{{ item.device.device_id }}">
+                                        [{{ item.device.device_id }}] {% if item.user_device.alias %}{{ item.user_device.alias }}{% else %}{{ item.device.default_name }}{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="deviceFrequency" class="form-label">Intervalo (segundos)</label>
+                                <input type="number" class="form-control" id="deviceFrequency" name="frequency" 
+                                    min="1" max="3600" value="2" step="1" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="devicePower" class="form-label">Estado</label>
+                                <select class="form-select" id="devicePower" name="power">
+                                    <option value="1">Encendido</option>
+                                    <option value="0">Apagado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 mt-3">
+                            <i class="bi bi-check-circle me-2"></i>Aplicar
+                        </button>
+                    </form>
+                </div>
+
+                <hr>
+
+                <!-- Sección: Comandos Pendientes -->
+                <div>
+                    <h6 class="fw-semibold mb-3 border-bottom pb-2">
+                        <i class="bi bi-clock-history me-2"></i>Comandos Pendientes
+                    </h6>
+                    <div id="pendingCommandsContainer" class="text-center">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    let refreshInterval; // Variable para controlar el temporizador
+    let refreshInterval;
 
     if (new URLSearchParams(window.location.search).get("status")) {
         setTimeout(() => {
@@ -123,9 +241,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 200);
     }
 
-    // Solo iniciar el refresco si no hay un mensaje de error inicial
     {% if not error_message %}
-    refreshInterval = setInterval(refreshDeviceList, 5000);
+    refreshInterval = setInterval(refreshDeviceList, 10000);
     refreshDeviceList(); 
     {% endif %}
 
@@ -134,14 +251,12 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch(`{% url 'devices:list_latest_json' %}?status=${status}`)
             .then(response => {
                 if (!response.ok) {
-                    // Si el servidor responde con error (ej. 503), detenemos el refresco
                     if (response.status === 503) {
-                        console.warn("Conexión perdida con la base de datos de sensores. Deteniendo actualizaciones.");
+                        console.warn("Conexión perdida con BD");
                         clearInterval(refreshInterval);
-                        // Opcional: Recargar la página para mostrar el mensaje de error global
                         window.location.reload();
                     }
-                    throw new Error('Error en la respuesta del servidor');
+                    throw new Error('Error en servidor');
                 }
                 return response.json();
             })
@@ -166,7 +281,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         container.innerHTML = `
                             <div class="d-flex flex-column gap-1">
-                                <small class="text-muted latest-date">${dateStr}</small>
+                                <small class="text-muted latest-date">${dateStr} UTC</small>
                                 <div class="d-flex gap-3 flex-wrap">
                                     <small class="fw-medium text-body latest-temp">
                                         ${parseFloat(latest.temperature).toFixed(1)} °C
@@ -180,12 +295,165 @@ document.addEventListener("DOMContentLoaded", function () {
                     } else {
                         container.innerHTML = '<small class="text-muted">Sin lecturas aún</small>';
                     }
+                    
+                    // Cargar configuración del dispositivo
+                    loadDeviceConfig(deviceId);
+                }
+            })
+            .catch(error => console.error("Error:", error));
+    }
+    
+    function loadDeviceConfig(deviceId) {
+        fetch(`{% url 'devices:get_device_config' %}?device_id=${deviceId}`)
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.querySelector(`.device-freq-badge-${deviceId}`);
+                if (badge) {
+                    badge.textContent = `⚡ ${data.frequency}s`;
+                    badge.title = `Configuración: Frecuencia ${data.frequency}s, Estado: ${data.power === 1 ? 'Encendido' : 'Apagado'}`;
+                }
+                
+                // Mostrar indicador de comando pendiente
+                const indicator = document.querySelector(`.pending-command-indicator-${deviceId}`);
+                if (indicator) {
+                    if (data.has_pending) {
+                        const pendingType = data.pending_command_type === 0 ? 'Apagando...' : 'Encendiendo...';
+                        indicator.innerHTML = `<i class="bi bi-hourglass-split"></i> ${pendingType}`;
+                        indicator.className = `pending-command-indicator-${deviceId} text-warning`;
+                        indicator.style.fontSize = '0.7rem';
+                    } else {
+                        indicator.innerHTML = '';
+                        indicator.className = `pending-command-indicator-${deviceId}`;
+                    }
+                }
+            })
+            .catch(error => console.error('Error loading config:', error));
+    }
+
+    // Cargar estado de comandos al abrir modal
+    const adminModal = document.getElementById('adminPanelModal');
+    if (adminModal) {
+        adminModal.addEventListener('show.bs.modal', loadCommandStatus);
+    }
+
+    function loadCommandStatus() {
+        fetch('{% url 'devices:get_command_status' %}')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('pendingCommandsContainer');
+                if (data.pending_commands && data.pending_commands.length > 0) {
+                    container.innerHTML = data.pending_commands.map(cmd => `
+                        <div class="alert alert-warning mb-2" role="alert">
+                            <strong>Device #${cmd.device_id}:</strong> ${cmd.command_type}
+                            <br><small class="text-muted">${new Date(cmd.created_at).toLocaleString()}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="alert alert-success mb-0"><i class="bi bi-check-circle me-2"></i>Sin comandos pendientes</div>';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Manejo de toggles de encendido/apagado
+    document.querySelectorAll('.device-power-toggle').forEach(toggle => {
+        toggle.addEventListener('change', function(e) {
+            e.preventDefault();
+            const deviceId = this.dataset.deviceId;
+            const deviceName = this.dataset.deviceName;
+            const isEnabling = this.checked;
+            const label = document.getElementById(`powerLabel-${deviceId}`);
+            
+            // Confirmación
+            const confirmMsg = isEnabling 
+                ? `¿Encender ${deviceName}?` 
+                : `¿Apagar ${deviceName}?`;
+                
+            if (!confirm(confirmMsg)) {
+                this.checked = !isEnabling; // Revertir
+                return;
+            }
+            
+            // Deshabilitar temporalmente
+            this.disabled = true;
+            
+            const url = isEnabling ? '{% url "devices:enable" %}' : '{% url "devices:disable" %}';
+            const formData = new FormData();
+            formData.append('device_id', deviceId);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            formData.append('ajax', 'true');
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Actualizar UI
+                    if (label) {
+                        label.textContent = isEnabling ? 'ON' : 'OFF';
+                        label.className = `power-label ${isEnabling ? 'on' : 'off'}`;
+                    }
+                    
+                    // Actualizar badge de estado (Online/Offline)
+                    const statusBadge = document.getElementById(`status-badge-${deviceId}`);
+                    if (statusBadge) {
+                        statusBadge.innerHTML = isEnabling 
+                            ? '<i class="bi bi-circle-fill" style="color: #28a745;"></i> Online'
+                            : '<i class="bi bi-circle-fill" style="color: #6c757d;"></i> Offline';
+                    }
+                    
+                    // Recargar config para mostrar indicador de comando pendiente
+                    loadDeviceConfig(deviceId);
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo procesar el comando'));
+                    this.checked = !isEnabling; // Revertir
                 }
             })
             .catch(error => {
-                console.error("Error refreshing device list:", error);
+                console.error('Error:', error);
+                alert('Error de conexión al enviar el comando');
+                this.checked = !isEnabling; // Revertir
+            })
+            .finally(() => {
+                this.disabled = false;
             });
-    }
+        });
+    });
+
+    // Manejo mejorado de acciones de dispositivos
+    window.handleDeviceAction = function(event, action, deviceName) {
+        const form = event.target.closest('.device-action-form');
+        const button = event.target.closest('.device-action-btn');
+        
+        if (!button) return true;
+        
+        // Confirmación personalizada según la acción
+        let confirmMsg = '';
+        if (action === 'disable') {
+            confirmMsg = `¿Enviar orden de APAGADO a ${deviceName}?\n\nEl dispositivo se apagará cuando reciba el comando.`;
+        } else {
+            confirmMsg = `¿Enviar orden de ENCENDIDO a ${deviceName}?\n\nEl dispositivo se encenderá cuando reciba el comando.`;
+        }
+        
+        if (!confirm(confirmMsg)) {
+            return false;
+        }
+        
+        // Mostrar estado de carga
+        const btnText = button.querySelector('.btn-text');
+        const spinner = button.querySelector('.spinner-border');
+        
+        if (btnText) btnText.classList.add('d-none');
+        if (spinner) spinner.classList.remove('d-none');
+        button.disabled = true;
+        
+        return true;
+    };
 });
 </script>
 {% endblock %}

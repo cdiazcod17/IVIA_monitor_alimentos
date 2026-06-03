@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Device, UserDevice
+from .models import Device, UserDevice, SensorReading, DeviceCommand
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
@@ -22,3 +22,14 @@ class UserDeviceAdmin(admin.ModelAdmin):
     search_fields = ('user__email', 'user__username', 'device__default_name', 'alias', 'food_name')
     # Fecha de vinculación como campo de solo lectura
     readonly_fields = ('linked_at',)
+
+@admin.register(SensorReading)
+class SensorReadingAdmin(admin.ModelAdmin):
+    list_display = ('device_id', 'dateData', 'temperature', 'humidity', 'co2')
+    list_filter = ('device_id', 'dateData')
+    ordering = ('-dateData',)
+
+@admin.register(DeviceCommand)
+class DeviceCommandAdmin(admin.ModelAdmin):
+    list_display = ('device_id', 'command_type', 'executed', 'created_at')
+    list_filter = ('executed', 'command_type')

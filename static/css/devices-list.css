@@ -47,6 +47,99 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
 }
 
+/* Estilos para botones de acción de dispositivos mejorados */
+.device-action-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.device-action-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.device-action-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.device-action-btn .btn-text {
+    transition: opacity 0.2s ease;
+}
+
+.device-action-btn .spinner-border {
+    width: 0.9rem;
+    height: 0.9rem;
+    border-width: 0.15em;
+}
+
+/* Indicador de comando pendiente */
+[class^="pending-command-indicator-"] {
+    transition: all 0.3s ease;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Badge de estado mejorado */
+[class^="device-status-badge-"] {
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* Modern Toggle Switch */
+.form-switch .form-check-input {
+    width: 3em;
+    height: 1.5em;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280, 0, 0, 0.25%29'/%3e%3c/svg%3e");
+    transition: background-position 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.form-switch .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+    border-color: #28a745;
+}
+
+.power-switch-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.power-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.power-label.on { color: #28a745; }
+.power-label.off { color: #dc3545; }
+
 /* Responsive breakpoints específicos */
 @media (max-width: 992px) {
     .btn-action {
@@ -64,6 +157,15 @@
     .card-body {
         padding: 1.25rem !important;
     }
+
+    .device-action-btn {
+        gap: 0.25rem;
+    }
+
+    .device-action-btn .spinner-border {
+        width: 0.8rem;
+        height: 0.8rem;
+    }
 }
 
 @media (max-width: 576px) {
@@ -76,6 +178,11 @@
     .badge.fs-6 {
         font-size: 0.75rem !important;
         padding: 0.35rem 0.6rem !important;
+    }
+
+    [class^="device-status-badge-"] {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.5rem;
     }
 }
 
@@ -113,6 +220,10 @@
     
     .btn-action:hover {
         box-shadow: 0 6px 16px rgba(255,255,255,0.15);
+    }
+
+    .device-action-btn:hover:not(:disabled) {
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15) !important;
     }
 }
 
