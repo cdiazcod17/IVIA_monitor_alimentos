@@ -140,6 +140,9 @@ ALLOWED_HOSTS = [
     'localhost',
 ]
 
+# Database routers
+DATABASE_ROUTERS = ['devices.db_routers.SensorsRouter']
+
 # Para producción (después)
 if not DEBUG:
     ALLOWED_HOSTS = []

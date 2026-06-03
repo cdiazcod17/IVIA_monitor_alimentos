@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .models import Device, UserDevice
+from .models import Device, UserDevice, DeviceCommand
 from . import services
 import csv
 from django.http import HttpResponse, JsonResponse
@@ -177,6 +177,13 @@ def device_detail(request, device_id):
         if user_device and user_device.alias:
             device_alias = user_device.alias.strip()
 
+        # Si el usuario envió un cambio de configuración (ej: frecuencia)
+        if request.method == 'POST' and 'set_frequency' in request.POST:
+            new_freq = request.POST.get('frequency')
+            # Aquí guardaríamos en una tabla de comandos que el worker revise
+            # O simplemente actualizamos el modelo Device si el worker lo consulta
+            messages.info(request, f"Comando de frecuencia ({new_freq}s) enviado al dispositivo.")
+
         all_sensor_data = services.get_filtered_readings(
             device_id=device_id,
             range_preset=range_preset,
@@ -248,9 +255,19 @@ def device_disable(request):
 
     device_id = request.POST.get('device_id')
     device = get_object_or_404(Device, device_id=device_id)
+    
+    # Crear comando para apagar el dispositivo
+    DeviceCommand.objects.create(
+        device_id=device.device_id,
+        command_type='SET_CONFIG',
+        payload={'power': 0}  # 0 = apagado
+    )
+    
+    # Marcar como inactivo en la UI
     device.is_active = False
     device.save()
-    messages.success(request, f'Dispositivo {device.default_name} desactivado')
+    
+    messages.success(request, f'✋ Comando enviado: {device.default_name} se apagará cuando reciba la orden.')
     return redirect('devices:list')
 
 
@@ -261,7 +278,139 @@ def device_enable(request):
 
     device_id = request.POST.get('device_id')
     device = get_object_or_404(Device, device_id=device_id)
+    
+    # Crear comando para encender el dispositivo
+    DeviceCommand.objects.create(
+        device_id=device.device_id,
+        command_type='SET_CONFIG',
+        payload={'power': 1}  # 1 = encendido
+    )
+    
+    # Marcar como activo en la UI
     device.is_active = True
     device.save()
-    messages.success(request, f'Dispositivo {device.default_name} Activado')
+    
+    messages.success(request, f'✅ Comando enviado: {device.default_name} se encenderá cuando reciba la orden.')
     return redirect('devices:list')
+
+
+@login_required
+def set_global_frequency(request):
+    if request.method != 'POST':
+        return redirect('devices:list')
+    
+    frequency = int(request.POST.get('frequency', 2))
+    power = int(request.POST.get('power', 1))
+    
+    # Crear comando para cada dispositivo
+    from .models import DeviceCommand
+    for device in Device.objects.filter(is_active=True):
+        DeviceCommand.objects.create(
+            device_id=device.device_id,
+            command_type='SET_CONFIG',
+            payload={'freq': frequency, 'power': power},
+            executed=False
+        )
+    
+    messages.success(request, f'✓ Comandos de frecuencia enviados a todos los dispositivos ({frequency}s)')
+    return redirect('devices:list')
+
+
+@login_required
+def set_device_frequency(request):
+    if request.method != 'POST':
+        return redirect('devices:list')
+    
+    device_id = int(request.POST.get('device_id'))
+    frequency = int(request.POST.get('frequency', 2))
+    power = int(request.POST.get('power', 1))
+    
+    from .models import DeviceCommand
+    DeviceCommand.objects.create(
+        device_id=device_id,
+        command_type='SET_CONFIG',
+        payload={'freq': frequency, 'power': power},
+        executed=False
+    )
+    
+    device = Device.objects.get(device_id=device_id)
+    messages.success(request, f'✓ Comando enviado a {device.default_name} (frecuencia: {frequency}s)')
+    return redirect('devices:list')
+
+
+@login_required
+def get_command_status(request):
+    from .models import DeviceCommand
+    import json
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Comandos pendientes
+    pending = DeviceCommand.objects.filter(executed=False).values(
+        'id', 'device_id', 'command_type', 'created_at', 'payload'
+    )
+    
+    # Comandos ejecutados recientes (últimas 24 horas)
+    recent_date = timezone.now() - timedelta(hours=24)
+    recent = DeviceCommand.objects.filter(
+        executed=True, 
+        created_at__gte=recent_date
+    ).values('id', 'device_id', 'command_type', 'created_at', 'payload').order_by('-created_at')[:10]
+    
+    pending_list = list(pending)
+    recent_list = list(recent)
+    
+    # Serializar con formato de string para el payload
+    for item in pending_list + recent_list:
+        item['created_at'] = item['created_at'].isoformat()
+        item['payload'] = json.dumps(item['payload']) if isinstance(item['payload'], dict) else str(item['payload'])
+    
+    return JsonResponse({
+        'pending_commands': pending_list,
+        'command_history': recent_list
+    })
+
+
+@login_required
+def get_device_config(request):
+    """API que devuelve la configuración actual de cada dispositivo"""
+    from .models import DeviceCommand
+    import json
+    
+    device_id = request.GET.get('device_id')
+    
+    # Obtener el último comando ejecutado (configuración actual)
+    last_command = DeviceCommand.objects.filter(
+        device_id=device_id,
+        executed=True,
+        command_type='SET_CONFIG'
+    ).order_by('-created_at').first()
+    
+    # Verificar si hay comandos pendientes
+    pending_command = DeviceCommand.objects.filter(
+        device_id=device_id,
+        executed=False,
+        command_type='SET_CONFIG'
+    ).order_by('-created_at').first()
+    
+    if last_command:
+        payload = last_command.payload
+        return JsonResponse({
+            'device_id': device_id,
+            'frequency': payload.get('freq', 2),
+            'power': payload.get('power', 1),
+            'last_config': last_command.created_at.isoformat(),
+            'has_config': True,
+            'has_pending': pending_command is not None,
+            'pending_command_type': pending_command.payload.get('power') if pending_command else None
+        })
+    else:
+        # Configuración por defecto si no hay comandos ejecutados
+        return JsonResponse({
+            'device_id': device_id,
+            'frequency': 2,  # Por defecto
+            'power': 1,      # Por defecto
+            'has_config': False,
+            'has_pending': pending_command is not None,
+            'pending_command_type': pending_command.payload.get('power') if pending_command else None
+        })

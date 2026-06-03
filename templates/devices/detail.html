@@ -48,12 +48,12 @@
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <small class="text-muted d-block mb-2">
-            Fecha y hora actual: <span class="fw-semibold" id="current-time">{% now "d/m/Y H:i:s" %}</span>
+            Fecha y hora actual: <span class="fw-semibold" id="current-time">{% now "d/m/Y H:i:s" %} UTC</span>
           </small>
           <hr class="my-2">
           <small class="text-muted d-block mb-1">Última lectura</small>
           {% if latest %}
-          <div class="fw-semibold" id="kpi-last-read">{{ latest.dateData|date:"d/m/Y H:i:s"|default:latest.dateData }}</div>
+          <div class="fw-semibold" id="kpi-last-read">{{ latest.dateData|date:"d/m/Y H:i:s" }} UTC</div>
           {% else %}
           <div class="text-muted" id="kpi-last-read">Sin datos</div>
           {% endif %}

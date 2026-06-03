@@ -50,3 +50,35 @@ class UserDevice(models.Model):
 
     def __str__(self):
         return f'{self.user} -> {self.device}'
+
+
+class SensorReading(models.Model):
+    device_id = models.PositiveSmallIntegerField()
+    report_id = models.PositiveSmallIntegerField()
+    sequence = models.PositiveIntegerField()
+    timeData = models.TimeField()
+    dateData = models.DateTimeField()
+    temperature = models.IntegerField()  # Valor raw (ej: 2550 para 25.50°C)
+    humidity = models.IntegerField()     # Valor raw
+    pressure = models.IntegerField()
+    co2 = models.IntegerField()
+    weight = models.IntegerField()
+    ethylene = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        db_table = 'sensor_readings'
+        managed = True
+
+    def __str__(self):
+        return f'Lectura {self.device_id} - {self.dateData}'
+
+
+class DeviceCommand(models.Model):
+    device_id = models.PositiveSmallIntegerField()
+    command_type = models.CharField(max_length=50)  # Ej: 'SET_CONFIG'
+    payload = models.JSONField()                  # Ej: {"freq": 10, "power": 1}
+    executed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'device_commands'

@@ -12,4 +12,8 @@ urlpatterns = [
     path('disable/', views.device_disable, name='disable'),
     path('enable/', views.device_enable, name='enable'),
     path('<int:device_id>/download/csv/', views.device_download_csv, name='device_download_csv'),
+    path('api/set-global-frequency/', views.set_global_frequency, name='set_global_frequency'),
+    path('api/set-device-frequency/', views.set_device_frequency, name='set_device_frequency'),
+    path('api/command-status/', views.get_command_status, name='get_command_status'),
+    path('api/device-config/', views.get_device_config, name='get_device_config'),
 ]
