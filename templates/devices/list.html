@@ -84,32 +84,17 @@
                                 </div>
                             </div>
 
-                            <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
-                                {% if item.device.is_active %}
-                                    <form method="post" action="{% url 'devices:disable' %}" class="m-0 device-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-0 device-action-btn" 
-                                                data-device-id="{{ item.device.device_id }}"
-                                                data-action="disable"
-                                                onclick="event.stopPropagation(); return handleDeviceAction(event, 'disable', '{{ item.device.default_name }}')">
-                                            <span class="btn-text">🔴 Off</span>
-                                            <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <form method="post" action="{% url 'devices:enable' %}" class="m-0 device-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="device_id" value="{{ item.device.device_id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-success px-2 py-0 device-action-btn" 
-                                                data-device-id="{{ item.device.device_id }}"
-                                                data-action="enable"
-                                                onclick="event.stopPropagation(); return handleDeviceAction(event, 'enable', '{{ item.device.default_name }}')">
-                                            <span class="btn-text">🟢 On</span>
-                                            <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
-                                        </button>
-                                    </form>
-                                {% endif %}
+                            <div class="flex-shrink-0 power-switch-container">
+                                <div class="form-check form-switch p-0 m-0">
+                                    <input class="form-check-input ms-0 device-power-toggle" type="checkbox" role="switch" 
+                                           id="powerSwitch-{{ item.device.device_id }}"
+                                           data-device-id="{{ item.device.device_id }}"
+                                           data-device-name="{% if item.user_device and item.user_device.alias %}{{ item.user_device.alias }}{% else %}{{ item.device.default_name }}{% endif %}"
+                                           {% if item.device.is_active %}checked{% endif %}>
+                                </div>
+                                <small class="power-label {% if item.device.is_active %}on{% else %}off{% endif %}" id="powerLabel-{{ item.device.device_id }}">
+                                    {% if item.device.is_active %}ON{% else %}OFF{% endif %}
+                                </small>
                                 <small class="text-muted text-end pending-command-indicator-{{ item.device.device_id }}" style="font-size: 0.7rem; min-height: 14px;">
                                     <!-- Indicador de comando pendiente -->
                                 </small>
@@ -257,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     {% if not error_message %}
-    refreshInterval = setInterval(refreshDeviceList, 5000);
+    refreshInterval = setInterval(refreshDeviceList, 10000);
     refreshDeviceList(); 
     {% endif %}
 
@@ -369,6 +354,76 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(error => console.error('Error:', error));
     }
+
+    // Manejo de toggles de encendido/apagado
+    document.querySelectorAll('.device-power-toggle').forEach(toggle => {
+        toggle.addEventListener('change', function(e) {
+            e.preventDefault();
+            const deviceId = this.dataset.deviceId;
+            const deviceName = this.dataset.deviceName;
+            const isEnabling = this.checked;
+            const label = document.getElementById(`powerLabel-${deviceId}`);
+            
+            // Confirmación
+            const confirmMsg = isEnabling 
+                ? `¿Encender ${deviceName}?` 
+                : `¿Apagar ${deviceName}?`;
+                
+            if (!confirm(confirmMsg)) {
+                this.checked = !isEnabling; // Revertir
+                return;
+            }
+            
+            // Deshabilitar temporalmente
+            this.disabled = true;
+            
+            const url = isEnabling ? '{% url "devices:enable" %}' : '{% url "devices:disable" %}';
+            const formData = new FormData();
+            formData.append('device_id', deviceId);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            formData.append('ajax', 'true');
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Actualizar UI
+                    if (label) {
+                        label.textContent = isEnabling ? 'ON' : 'OFF';
+                        label.className = `power-label ${isEnabling ? 'on' : 'off'}`;
+                    }
+                    
+                    // Actualizar badge de estado (Online/Offline)
+                    const statusBadge = document.getElementById(`status-badge-${deviceId}`);
+                    if (statusBadge) {
+                        statusBadge.innerHTML = isEnabling 
+                            ? '<i class="bi bi-circle-fill" style="color: #28a745;"></i> Online'
+                            : '<i class="bi bi-circle-fill" style="color: #6c757d;"></i> Offline';
+                    }
+                    
+                    // Recargar config para mostrar indicador de comando pendiente
+                    loadDeviceConfig(deviceId);
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo procesar el comando'));
+                    this.checked = !isEnabling; // Revertir
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión al enviar el comando');
+                this.checked = !isEnabling; // Revertir
+            })
+            .finally(() => {
+                this.disabled = false;
+            });
+        });
+    });
 
     // Manejo mejorado de acciones de dispositivos
     window.handleDeviceAction = function(event, action, deviceName) {

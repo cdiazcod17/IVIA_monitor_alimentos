@@ -112,7 +112,7 @@ class Command(BaseCommand):
 
     def _send_time_packet(self, device):
         """Reclica la lógica de 'Enviar Hora' de tu script original."""
-        now = datetime.datetime.now()
+        now = datetime.datetime.now() # Sincronizar con hora LOCAL del sistema
         packet = [0]*64
         packet[2] = 1 # MSG_ID para hora
         packet[3] = now.year % 100

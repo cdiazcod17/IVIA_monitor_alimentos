@@ -267,6 +267,9 @@ def device_disable(request):
     device.is_active = False
     device.save()
     
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.POST.get('ajax'):
+        return JsonResponse({'status': 'success', 'is_active': False, 'message': f'{device.default_name} se apagará pronto.'})
+
     messages.success(request, f'✋ Comando enviado: {device.default_name} se apagará cuando reciba la orden.')
     return redirect('devices:list')
 
@@ -290,6 +293,9 @@ def device_enable(request):
     device.is_active = True
     device.save()
     
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.POST.get('ajax'):
+        return JsonResponse({'status': 'success', 'is_active': True, 'message': f'{device.default_name} se encenderá pronto.'})
+
     messages.success(request, f'✅ Comando enviado: {device.default_name} se encenderá cuando reciba la orden.')
     return redirect('devices:list')
 

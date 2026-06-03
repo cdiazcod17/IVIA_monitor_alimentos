@@ -27,19 +27,38 @@
       </p>
     </div>
 
-    <div class="d-flex gap-2">
-      <a
-        href="{% url 'devices:list' %}"
-        class="btn btn-outline-secondary btn-sm"
-      >
-        <i class="bi bi-arrow-left me-1"></i>Volver
-      </a>
-      <a
-        href="{% url 'devices:device_download_csv' device_id %}?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}"
-        class="btn btn-primary btn-sm"
-      >
-        <i class="bi bi-download me-1"></i>Exportar CSV
-      </a>
+    <div class="d-flex flex-column align-items-end gap-2">
+      <div class="d-flex gap-2">
+        <a
+          href="{% url 'devices:list' %}"
+          class="btn btn-outline-secondary btn-sm"
+        >
+          <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+        <a
+          href="{% url 'devices:device_download_csv' device_id %}?range={{ range_preset }}&date_from={{ date_from }}&date_to={{ date_to }}"
+          class="btn btn-primary btn-sm"
+        >
+          <i class="bi bi-download me-1"></i>Exportar CSV
+        </a>
+      </div>
+      
+      <!-- Control de Encendido/Apagado en Detalle -->
+      <div class="bg-white p-2 rounded shadow-sm border d-flex align-items-center gap-3">
+          <div class="power-switch-container">
+              <div class="form-check form-switch p-0 m-0">
+                  <input class="form-check-input ms-0 device-power-toggle" type="checkbox" role="switch" 
+                         id="powerSwitch-{{ device_id }}"
+                         data-device-id="{{ device_id }}"
+                         data-device-name="{% if device_alias %}{{ device_alias }}{% else %}Dispositivo {{ device_id }}{% endif %}"
+                         {% if user_device.device.is_active %}checked{% endif %}>
+              </div>
+              <small class="power-label {% if user_device.device.is_active %}on{% else %}off{% endif %}" id="powerLabel-{{ device_id }}">
+                  {% if user_device.device.is_active %}ON{% else %}OFF{% endif %}
+              </small>
+          </div>
+          <div class="pending-command-indicator-{{ device_id }}" style="font-size: 0.75rem;"></div>
+      </div>
     </div>
   </div>
 
@@ -48,12 +67,12 @@
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <small class="text-muted d-block mb-2">
-            Fecha y hora actual: <span class="fw-semibold" id="current-time">{% now "d/m/Y H:i:s" %} UTC</span>
+            Fecha y hora actual: <span class="fw-semibold" id="current-time">{% now "d/m/Y H:i:s" %}</span>
           </small>
           <hr class="my-2">
           <small class="text-muted d-block mb-1">Última lectura</small>
           {% if latest %}
-          <div class="fw-semibold" id="kpi-last-read">{{ latest.dateData|date:"d/m/Y H:i:s" }} UTC</div>
+          <div class="fw-semibold" id="kpi-last-read">{{ latest.dateData|date:"d/m/Y H:i:s" }}</div>
           {% else %}
           <div class="text-muted" id="kpi-last-read">Sin datos</div>
           {% endif %}
@@ -328,23 +347,111 @@
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Actualizar reloj de fecha y hora actual
-    function updateClock() {
-      const now = new Date();
-      const timeEl = document.getElementById("current-time");
-      if (timeEl) {
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const year = now.getFullYear();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        timeEl.textContent = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-      }
+  // Función para el reloj en tiempo real (Local)
+  function updateClock() {
+    const now = new Date();
+    const timeEl = document.getElementById("current-time");
+    if (timeEl) {
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      timeEl.textContent = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
     }
-    updateClock();
-    setInterval(updateClock, 1000);
+  }
+
+  // Iniciar reloj inmediatamente y cada segundo
+  setInterval(updateClock, 1000);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("Monitor IVIA: Script de detalle cargado para dispositivo {{ device_id }}");
+    updateClock(); // Ejecución inicial al cargar el DOM
+
+    // Manejo de toggles de encendido/apagado
+    document.querySelectorAll('.device-power-toggle').forEach(toggle => {
+        toggle.addEventListener('change', function(e) {
+            e.preventDefault();
+            const deviceId = this.dataset.deviceId;
+            const deviceName = this.dataset.deviceName;
+            const isEnabling = this.checked;
+            const label = document.getElementById(`powerLabel-${deviceId}`);
+
+            // Confirmación
+            const confirmMsg = isEnabling 
+                ? `¿Encender ${deviceName}?` 
+                : `¿Apagar ${deviceName}?`;
+
+            if (!confirm(confirmMsg)) {
+                this.checked = !isEnabling; // Revertir
+                return;
+            }
+
+            // Deshabilitar temporalmente
+            this.disabled = true;
+
+            const url = isEnabling ? '{% url "devices:enable" %}' : '{% url "devices:disable" %}';
+            const formData = new FormData();
+            formData.append('device_id', deviceId);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            formData.append('ajax', 'true');
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Actualizar UI
+                    if (label) {
+                        label.textContent = isEnabling ? 'ON' : 'OFF';
+                        label.className = `power-label ${isEnabling ? 'on' : 'off'}`;
+                    }
+
+                    // Recargar config para mostrar indicador de comando pendiente
+                    loadDeviceConfig(deviceId);
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo procesar el comando'));
+                    this.checked = !isEnabling; // Revertir
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión al enviar el comando');
+                this.checked = !isEnabling; // Revertir
+            })
+            .finally(() => {
+                this.disabled = false;
+            });
+        });
+    });
+
+    function loadDeviceConfig(deviceId) {
+        fetch(`{% url 'devices:get_device_config' %}?device_id=${deviceId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Mostrar indicador de comando pendiente
+                const indicator = document.querySelector(`.pending-command-indicator-${deviceId}`);
+                if (indicator) {
+                    if (data.has_pending) {
+                        const pendingType = data.pending_command_type === 0 ? 'Apagando...' : 'Encendiendo...';
+                        indicator.innerHTML = `<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> ${pendingType}</span>`;
+                    } else {
+                        indicator.innerHTML = '';
+                    }
+                }
+            })
+            .catch(error => console.error('Error loading config:', error));
+    }
+
+    // Cargar config inicial
+    loadDeviceConfig('{{ device_id }}');
+    setInterval(() => loadDeviceConfig('{{ device_id }}'), 10000);
 
     // Verificamos si hay paginación. Solo activamos el "autorefresh" si estamos
     // en la página 1 o si no hay parámetro de página, para evitar que el usuario
@@ -355,8 +462,8 @@
     if (!page || page === "1") {
       // Forzar una primera carga para homogeneizar el formato visual y aplicar bien los filtros
       fetchLatestReadings();
-      // Ejecutar cada 5 segundos (5000 milisegundos)
-      setInterval(fetchLatestReadings, 5000);
+      // Ejecutar cada 10 segundos (10000 milisegundos)
+      setInterval(fetchLatestReadings, 10000);
     }
 
     function fetchLatestReadings() {
@@ -430,6 +537,7 @@
               if (formattedDate) {
                 const d = new Date(formattedDate);
                 if (!isNaN(d.getTime())) {
+                  // Usar métodos locales para coincidir con la hora del sistema
                   const day = String(d.getDate()).padStart(2, '0');
                   const month = String(d.getMonth() + 1).padStart(2, '0');
                   const year = d.getFullYear();
