@@ -34,3 +34,10 @@ media/
 ehthumbs.db
 Thumbs.db
 EOF
+
+
+#IA
+.claude
+.agents
+*.md
+skills-lock.json

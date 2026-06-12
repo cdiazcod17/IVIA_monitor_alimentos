@@ -24,9 +24,6 @@
                 <a href="{% url 'devices:list' %}?status=active" class="btn btn-outline-secondary {% if status_filter == 'active' %}active{% endif %}">Activos</a>
                 <a href="{% url 'devices:list' %}?status=inactive" class="btn btn-outline-secondary {% if status_filter == 'inactive' %}active{% endif %}">Inactivos</a>
             </div>
-            <a href="{% url 'devices:add' %}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus me-1"></i>Personalizar dispositivo
-            </a>
             <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#adminPanelModal">
                 <i class="bi bi-gear me-1"></i>Panel Admin
             </button>
@@ -43,11 +40,11 @@
         {% for item in devices %}
         <div class="col-xl-3 col-lg-4 col-md-6">
             <a href="{% url 'devices:detail' item.device.device_id %}" class="text-decoration-none d-block h-100">
-                <div class="card h-100 border-0 shadow-sm device-card">
+                <div class="card h-100 border-0 shadow-sm device-card {% if item.device.is_active %}is-online{% else %}is-offline{% endif %}">
                     <div class="card-body p-3 p-md-4 d-flex flex-column gap-3">
-                        <div class="d-flex align-items-start justify-content-between gap-2 device-card__header">
+                        <div class="d-flex align-items-start gap-2 device-card__header">
                             <div class="flex-grow-1 device-card__content">
-                                <h6 class="fw-semibold mb-0 text-body text-truncate">
+                                <h6 class="fw-semibold mb-0 text-body text-truncate" data-card-name="{{ item.device.device_id }}">
                                     {% if item.user_device and item.user_device.alias %}
                                         {{ item.user_device.alias }}
                                     {% else %}
@@ -60,13 +57,8 @@
                                 <small class="text-muted d-block text-truncate">{{ item.device.location }}</small>
                                 {% endif %}
                                 
-                                {% if item.user_device and item.user_device.food_name %}
-                                <small class="text-primary d-block mt-1 text-truncate">{{ item.user_device.food_name }}</small>
-                                {% endif %}
-                                
-                                {% if item.user_device and item.user_device.notes %}
-                                <p class="device-card__notes text-muted mb-0 mt-1 small text-truncate">{{ item.user_device.notes }}</p>
-                                {% endif %}
+                                <small class="text-primary d-block mt-1 text-truncate" data-card-food="{{ item.device.device_id }}" {% if not item.user_device or not item.user_device.food_name %}hidden{% endif %}>{% if item.user_device and item.user_device.food_name %}{{ item.user_device.food_name }}{% endif %}</small>
+                                <p class="device-card__notes text-muted mb-0 mt-1 small text-truncate" data-card-notes="{{ item.device.device_id }}" {% if not item.user_device or not item.user_device.notes %}hidden{% endif %}>{% if item.user_device and item.user_device.notes %}{{ item.user_device.notes }}{% endif %}</p>
                                 
                                 <!-- Estado y Configuración -->
                                 <div class="mt-2 d-flex gap-2 flex-wrap align-items-center">
@@ -84,20 +76,35 @@
                                 </div>
                             </div>
 
-                            <div class="flex-shrink-0 power-switch-container">
-                                <div class="form-check form-switch p-0 m-0">
-                                    <input class="form-check-input ms-0 device-power-toggle" type="checkbox" role="switch" 
-                                           id="powerSwitch-{{ item.device.device_id }}"
-                                           data-device-id="{{ item.device.device_id }}"
-                                           data-device-name="{% if item.user_device and item.user_device.alias %}{{ item.user_device.alias }}{% else %}{{ item.device.default_name }}{% endif %}"
-                                           {% if item.device.is_active %}checked{% endif %}>
+                            <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+                                <button type="button" class="btn btn-link p-0 text-muted"
+                                        style="font-size:0.85rem; line-height:1;"
+                                        data-bs-toggle="modal" data-bs-target="#customizeModal"
+                                        data-device-id="{{ item.device.device_id }}"
+                                        data-device-name="{% if item.user_device and item.user_device.alias %}{{ item.user_device.alias }}{% else %}{{ item.device.default_name }}{% endif %}"
+                                        data-default-name="{{ item.device.default_name }}"
+                                        data-alias="{% if item.user_device and item.user_device.alias %}{{ item.user_device.alias }}{% endif %}"
+                                        data-food="{% if item.user_device and item.user_device.food_name %}{{ item.user_device.food_name }}{% endif %}"
+                                        data-notes="{% if item.user_device and item.user_device.notes %}{{ item.user_device.notes }}{% endif %}"
+                                        onclick="event.preventDefault(); event.stopPropagation();"
+                                        title="Personalizar etiqueta">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <div class="power-switch-container text-end">
+                                    <div class="form-check form-switch p-0 m-0">
+                                        <input class="form-check-input ms-0 device-power-toggle" type="checkbox" role="switch"
+                                               id="powerSwitch-{{ item.device.device_id }}"
+                                               data-device-id="{{ item.device.device_id }}"
+                                               data-device-name="{% if item.user_device and item.user_device.alias %}{{ item.user_device.alias }}{% else %}{{ item.device.default_name }}{% endif %}"
+                                               {% if item.device.is_active %}checked{% endif %}>
+                                    </div>
+                                    <small class="power-label {% if item.device.is_active %}on{% else %}off{% endif %}" id="powerLabel-{{ item.device.device_id }}">
+                                        {% if item.device.is_active %}ON{% else %}OFF{% endif %}
+                                    </small>
+                                    <small class="text-muted text-end pending-command-indicator-{{ item.device.device_id }}" style="font-size: 0.7rem; min-height: 14px;">
+                                        <!-- Indicador de comando pendiente -->
+                                    </small>
                                 </div>
-                                <small class="power-label {% if item.device.is_active %}on{% else %}off{% endif %}" id="powerLabel-{{ item.device.device_id }}">
-                                    {% if item.device.is_active %}ON{% else %}OFF{% endif %}
-                                </small>
-                                <small class="text-muted text-end pending-command-indicator-{{ item.device.device_id }}" style="font-size: 0.7rem; min-height: 14px;">
-                                    <!-- Indicador de comando pendiente -->
-                                </small>
                             </div>
                         </div>
 
@@ -225,6 +232,57 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal Personalizar dispositivo -->
+<div class="modal fade" id="customizeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <div>
+                    <p class="mb-0 text-muted" id="customizeModalDeviceId"
+                       style="font-size:0.7rem; font-family:'DM Mono',monospace; letter-spacing:.06em; text-transform:uppercase;"></p>
+                    <h5 class="modal-title fw-semibold mb-0" id="customizeModalTitle">Dispositivo</h5>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-2">
+                <input type="hidden" id="customizeDeviceId">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small mb-1">Alias</label>
+                    <input type="text" class="form-control form-control-sm" id="customizeAlias"
+                           placeholder="Nombre descriptivo...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small mb-1">Alimento</label>
+                    <input type="text" class="form-control form-control-sm" id="customizeFoodName"
+                           placeholder="Naranja, Manzana...">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label fw-semibold small mb-1">Notas</label>
+                    <textarea class="form-control form-control-sm" id="customizeNotes" rows="2"
+                              placeholder="Lote, ubicación..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-2 gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-sm btn-primary fw-semibold" id="customizeSaveBtn">
+                    <i class="bi bi-check-lg me-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast confirmación guardado -->
+<div id="customizeToast" class="toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-3"
+     role="alert" style="z-index:9999;">
+    <div class="d-flex">
+        <div class="toast-body fw-semibold">
+            <i class="bi bi-check-lg me-2"></i>Etiqueta guardada
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
     </div>
 </div>
 
@@ -424,6 +482,83 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+
+    // ── Personalización por tarjeta ─────────────────────────────────────────
+    const customizeModal = document.getElementById('customizeModal');
+    const toastEl = document.getElementById('customizeToast');
+    const customizeToast = toastEl ? new bootstrap.Toast(toastEl, { delay: 2500 }) : null;
+
+    if (customizeModal) {
+        customizeModal.addEventListener('show.bs.modal', function(event) {
+            const btn = event.relatedTarget;
+            if (!btn) return;
+            document.getElementById('customizeDeviceId').value = btn.dataset.deviceId || '';
+            document.getElementById('customizeModalDeviceId').textContent = 'ID: ' + (btn.dataset.deviceId || '');
+            document.getElementById('customizeModalTitle').textContent = btn.dataset.deviceName || 'Dispositivo';
+            document.getElementById('customizeAlias').value = btn.dataset.alias || '';
+            document.getElementById('customizeFoodName').value = btn.dataset.food || '';
+            document.getElementById('customizeNotes').value = btn.dataset.notes || '';
+        });
+
+        document.getElementById('customizeSaveBtn').addEventListener('click', function() {
+            const deviceId = document.getElementById('customizeDeviceId').value;
+            const alias = document.getElementById('customizeAlias').value.trim();
+            const foodName = document.getElementById('customizeFoodName').value.trim();
+            const notes = document.getElementById('customizeNotes').value.trim();
+            const saveBtn = this;
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando...';
+
+            const fd = new FormData();
+            fd.append('device_id', deviceId);
+            fd.append('alias', alias);
+            fd.append('food_name', foodName);
+            fd.append('notes', notes);
+            fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            fetch('{% url "devices:add" %}', {
+                method: 'POST',
+                body: fd,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status !== 'ok') throw new Error(data.error || 'Error al guardar');
+
+                // Actualizar tarjeta en el momento
+                const editBtn = document.querySelector(`[data-device-id="${deviceId}"][data-bs-target="#customizeModal"]`);
+                if (editBtn) {
+                    const displayName = alias || editBtn.dataset.defaultName;
+                    editBtn.dataset.alias = alias;
+                    editBtn.dataset.food = foodName;
+                    editBtn.dataset.notes = notes;
+                    editBtn.dataset.deviceName = displayName;
+
+                    const nameEl = document.querySelector(`[data-card-name="${deviceId}"]`);
+                    if (nameEl) nameEl.textContent = displayName;
+
+                    const foodEl = document.querySelector(`[data-card-food="${deviceId}"]`);
+                    if (foodEl) { foodEl.textContent = foodName; foodEl.hidden = !foodName; }
+
+                    const notesEl = document.querySelector(`[data-card-notes="${deviceId}"]`);
+                    if (notesEl) { notesEl.textContent = notes; notesEl.hidden = !notes; }
+
+                    const toggle = document.getElementById(`powerSwitch-${deviceId}`);
+                    if (toggle) toggle.dataset.deviceName = alias || editBtn.dataset.defaultName;
+                }
+
+                bootstrap.Modal.getInstance(customizeModal).hide();
+                if (customizeToast) customizeToast.show();
+            })
+            .catch(err => alert('Error al guardar: ' + err.message))
+            .finally(() => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Guardar';
+            });
+        });
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     // Manejo mejorado de acciones de dispositivos
     window.handleDeviceAction = function(event, action, deviceName) {

@@ -79,83 +79,84 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Grid de variables de monitoreo (Última Lectura) -->
-<div class="row g-3 mb-4">
+  <!-- Grid de variables de monitoreo -->
+  <div class="row g-3 mb-4">
     <!-- Temperatura -->
     <div class="col-6 col-md-4 col-lg-2">
-        <div class="card shadow-sm border-0 h-100">
+        <div class="card shadow-sm border-0 h-100 kpi-card kpi-card--temp">
             <div class="card-body text-center p-3">
                 <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
                     <i class="bi bi-thermometer-half text-danger fs-4"></i>
                 </div>
-                <h6 class="text-muted mb-1 small">Temperatura</h6>
-                <h5 class="fw-bold mb-0 text-dark" id="kpi-temp">{{ latest.temperature|floatformat:1|default:"--" }}<small class="fs-6 text-muted ms-1">°C</small></h5>
+                <h6 class="text-muted mb-2 small text-uppercase fw-semibold" style="font-size:0.68rem;letter-spacing:.06em">Temperatura</h6>
+                <div class="kpi-value mb-0" id="kpi-temp">{{ latest.temperature|floatformat:1|default:"--" }}<small class="text-muted ms-1" style="font-size:0.85rem">°C</small></div>
             </div>
         </div>
     </div>
-    
+
     <!-- Humedad -->
     <div class="col-6 col-md-4 col-lg-2">
-        <div class="card shadow-sm border-0 h-100">
+        <div class="card shadow-sm border-0 h-100 kpi-card kpi-card--hum">
             <div class="card-body text-center p-3">
                 <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
                     <i class="bi bi-droplet-fill text-info fs-4"></i>
                 </div>
-                <h6 class="text-muted mb-1 small">Humedad</h6>
-                <h5 class="fw-bold mb-0 text-dark" id="kpi-hum">{{ latest.humidity|floatformat:1|default:"--" }}<small class="fs-6 text-muted ms-1">%</small></h5>
+                <h6 class="text-muted mb-2 small text-uppercase fw-semibold" style="font-size:0.68rem;letter-spacing:.06em">Humedad</h6>
+                <div class="kpi-value mb-0" id="kpi-hum">{{ latest.humidity|floatformat:1|default:"--" }}<small class="text-muted ms-1" style="font-size:0.85rem">%</small></div>
             </div>
         </div>
     </div>
-    
+
     <!-- Presión -->
     <div class="col-6 col-md-4 col-lg-2">
-        <div class="card shadow-sm border-0 h-100">
+        <div class="card shadow-sm border-0 h-100 kpi-card kpi-card--press">
             <div class="card-body text-center p-3">
                 <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
                     <i class="bi bi-speedometer2 text-success fs-4"></i>
                 </div>
-                <h6 class="text-muted mb-1 small">Presión</h6>
-                <h5 class="fw-bold mb-0 text-dark" id="kpi-press">{{ latest.pressure|default:"--" }}<small class="fs-6 text-muted ms-1">Pa</small></h5>
+                <h6 class="text-muted mb-2 small text-uppercase fw-semibold" style="font-size:0.68rem;letter-spacing:.06em">Presión</h6>
+                <div class="kpi-value mb-0" id="kpi-press">{{ latest.pressure|default:"--" }}<small class="text-muted ms-1" style="font-size:0.85rem">Pa</small></div>
             </div>
         </div>
     </div>
-    
+
     <!-- CO2 -->
     <div class="col-6 col-md-4 col-lg-2">
-        <div class="card shadow-sm border-0 h-100">
+        <div class="card shadow-sm border-0 h-100 kpi-card kpi-card--co2">
             <div class="card-body text-center p-3">
                 <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
                     <i class="bi bi-cloud-haze2-fill text-secondary fs-4"></i>
                 </div>
-                <h6 class="text-muted mb-1 small">CO2</h6>
-                <h5 class="fw-bold mb-0 text-dark" id="kpi-co2">{{ latest.co2|default:"--" }}<small class="fs-6 text-muted ms-1">ppm</small></h5>
+                <h6 class="text-muted mb-2 small text-uppercase fw-semibold" style="font-size:0.68rem;letter-spacing:.06em">CO₂</h6>
+                <div class="kpi-value mb-0" id="kpi-co2">{{ latest.co2|default:"--" }}<small class="text-muted ms-1" style="font-size:0.85rem">ppm</small></div>
             </div>
         </div>
     </div>
-    
+
     <!-- Peso -->
     <div class="col-6 col-md-4 col-lg-2">
-        <div class="card shadow-sm border-0 h-100">
+        <div class="card shadow-sm border-0 h-100 kpi-card kpi-card--weight">
             <div class="card-body text-center p-3">
                 <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
                     <i class="bi bi-box-seam-fill text-warning fs-4"></i>
                 </div>
-                <h6 class="text-muted mb-1 small">Peso</h6>
-                <h5 class="fw-bold mb-0 text-dark" id="kpi-weight">{{ latest.weight|default:"--" }}<small class="fs-6 text-muted ms-1">g</small></h5>
+                <h6 class="text-muted mb-2 small text-uppercase fw-semibold" style="font-size:0.68rem;letter-spacing:.06em">Peso</h6>
+                <div class="kpi-value mb-0" id="kpi-weight">{{ latest.weight|default:"--" }}<small class="text-muted ms-1" style="font-size:0.85rem">g</small></div>
             </div>
         </div>
     </div>
-    
+
     <!-- Etileno -->
     <div class="col-6 col-md-4 col-lg-2">
-        <div class="card shadow-sm border-0 h-100">
+        <div class="card shadow-sm border-0 h-100 kpi-card kpi-card--eth">
             <div class="card-body text-center p-3">
                 <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
                     <i class="bi bi-moisture text-primary fs-4"></i>
                 </div>
-                <h6 class="text-muted mb-1 small">Etileno</h6>
-                <h5 class="fw-bold mb-0 text-dark" id="kpi-ethylene">{{ latest.ethylene|default:"--" }}</h5>
+                <h6 class="text-muted mb-2 small text-uppercase fw-semibold" style="font-size:0.68rem;letter-spacing:.06em">Etileno</h6>
+                <div class="kpi-value mb-0" id="kpi-ethylene">{{ latest.ethylene|default:"--" }}</div>
             </div>
         </div>
     </div>
@@ -552,19 +553,19 @@
             }
             
             if (kpiTemp && data.latest.temperature !== null) {
-              kpiTemp.innerHTML = `${parseFloat(data.latest.temperature).toFixed(1)}<small class="fs-6 text-muted ms-1">°C</small>`;
+              kpiTemp.innerHTML = `${parseFloat(data.latest.temperature).toFixed(1)}<small class="text-muted ms-1" style="font-size:0.85rem">°C</small>`;
             }
             if (kpiHum && data.latest.humidity !== null) {
-              kpiHum.innerHTML = `${parseFloat(data.latest.humidity).toFixed(1)}<small class="fs-6 text-muted ms-1">%</small>`;
+              kpiHum.innerHTML = `${parseFloat(data.latest.humidity).toFixed(1)}<small class="text-muted ms-1" style="font-size:0.85rem">%</small>`;
             }
             if (kpiPress && data.latest.pressure !== null) {
-              kpiPress.innerHTML = `${data.latest.pressure}<small class="fs-6 text-muted ms-1">Pa</small>`;
+              kpiPress.innerHTML = `${data.latest.pressure}<small class="text-muted ms-1" style="font-size:0.85rem">Pa</small>`;
             }
             if (kpiCO2 && data.latest.co2 !== null) {
-              kpiCO2.innerHTML = `${data.latest.co2}<small class="fs-6 text-muted ms-1">ppm</small>`;
+              kpiCO2.innerHTML = `${data.latest.co2}<small class="text-muted ms-1" style="font-size:0.85rem">ppm</small>`;
             }
             if (kpiWeight && data.latest.weight !== null) {
-              kpiWeight.innerHTML = `${data.latest.weight}<small class="fs-6 text-muted ms-1">g</small>`;
+              kpiWeight.innerHTML = `${data.latest.weight}<small class="text-muted ms-1" style="font-size:0.85rem">g</small>`;
             }
             if (kpiEth && data.latest.ethylene !== null) {
               kpiEth.innerText = data.latest.ethylene;

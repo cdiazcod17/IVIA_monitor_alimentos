@@ -1,9 +1,12 @@
+import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views import View
 from .forms import SigninForm, SignupForm
 from django.contrib.auth.decorators import login_required
+
+logger = logging.getLogger(__name__)
 
 def home(request):
     return render(request, 'home.html')
@@ -22,7 +25,7 @@ class SigninView(View):
             user = form.get_user()
             login(request, user)
             return redirect('devices:list')
-        print(f"=== FORM ERRORS: {form.errors}")
+        logger.warning("Signin failed: %s", form.errors)
         return render(request, self.template_name, {'form': form})
 
 class SignupView(View):

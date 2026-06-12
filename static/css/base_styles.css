@@ -3,7 +3,45 @@
     --bs-primary-rgb: 199, 15, 45;
     --bs-link-color: #c70f2d;
     --bs-link-hover-color: #9d0b23;
+    --ivia-bg: #f5f4f2;
+    --ivia-ink: #1c1c1e;
+    --ivia-agro: #2e7d52;
+    --ivia-agro-subtle: #e8f5ee;
+    --ivia-border: #e3e0db;
 }
+
+/* --- Tipografía base --- */
+body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--ivia-bg);
+    color: var(--ivia-ink);
+}
+
+.serif-display {
+    font-family: 'DM Serif Display', Georgia, serif;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.font-mono,
+.sensor-val,
+small.device-id-label {
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- Verde agro (estados activos/online) --- */
+.text-agro { color: var(--ivia-agro) !important; }
+.bg-agro-subtle { background-color: var(--ivia-agro-subtle) !important; }
+.form-switch .form-check-input:checked {
+    background-color: var(--ivia-agro);
+    border-color: var(--ivia-agro);
+}
+.form-switch .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(46, 125, 82, 0.25);
+    border-color: var(--ivia-agro);
+}
+.power-label.on { color: var(--ivia-agro); }
 
 .btn-primary {
     --bs-btn-bg: var(--bs-primary);
@@ -39,4 +77,14 @@
 
 .hover-primary:hover {
     color: var(--bs-primary) !important;
+}
+
+.footer-logo {
+    max-height: 56px;
+    width: auto;
+    transition: transform 0.3s ease;
+}
+
+.footer-logo:hover {
+    transform: scale(1.05);
 }

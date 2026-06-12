@@ -1,15 +1,46 @@
 /* Dispositivos List - Responsive Cards & Buttons */
-.hover-shadow-lg { 
-    transition: all 0.2s ease; 
+.hover-shadow-lg {
+    transition: all 0.2s ease;
 }
 
-.hover-shadow-lg:hover { 
-    transform: translateY(-4px); 
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important; 
+.hover-shadow-lg:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
 }
 
-.transition-all { 
-    transition: all 0.2s ease-in-out; 
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+
+/* --- Estado online/offline en tarjeta de dispositivo --- */
+.device-card.is-online {
+    border-left: 3px solid var(--ivia-agro, #2e7d52) !important;
+}
+.device-card.is-offline {
+    border-left: 3px solid #dee2e6 !important;
+}
+
+/* --- Tarjetas KPI estilo instrumento --- */
+.kpi-card {
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.kpi-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+.kpi-card--temp  { border-bottom-color: #dc3545; }
+.kpi-card--hum   { border-bottom-color: #0dcaf0; }
+.kpi-card--press { border-bottom-color: #198754; }
+.kpi-card--co2   { border-bottom-color: #6c757d; }
+.kpi-card--weight { border-bottom-color: #ffc107; }
+.kpi-card--eth   { border-bottom-color: var(--bs-primary, #c70f2d); }
+
+.kpi-card .kpi-value {
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1;
 }
 
 /* Botones acción RESPONSIVE (UX/UI perfecta) */
