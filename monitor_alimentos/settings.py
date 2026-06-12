@@ -26,7 +26,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 INSTALLED_APPS = [
@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'devices',
 ]
 
-LOGIN_URL = '/signin/'
+LOGIN_URL = '/users/signin/'
 LOGIN_REDIRECT_URL = '/devices/'
 LOGOUT_REDIRECT_URL = '/'
 
@@ -132,19 +132,57 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost',
-]
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 # Database routers
 DATABASE_ROUTERS = ['devices.db_routers.SensorsRouter']
 
-# Para producción (después)
+# Security — only enforced in production (DEBUG=False)
 if not DEBUG:
-    ALLOWED_HOSTS = []
-    
-    
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
+            'propagate': False,
+        },
+        'devices': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'users': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

@@ -2,55 +2,76 @@
 {% block title %}Registro{% endblock %}
 
 {% block content %}
+<style>
+  main.flex-grow-1 { display: flex; align-items: center; justify-content: center; }
+</style>
 
-<div class="row justify-content-center m-4">
-    <div class="col-md-8 col-lg-7 col-xl-6">
-        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-            <div class="card-body p-5 p-md-6">
-                <div class="text-center mb-5">
-                    <i class="bi bi-person-plus-fill display-1 text-success opacity-75 mb-4"></i>
-                    <h2 class="h1 fw-bold mb-1 text-dark">Crear cuenta</h2>
-                    <p class="text-muted mb-0 lead fw-normal">Únete al Monitor IVIA</p>
+<div class="w-100 px-3 py-4" style="max-width: 540px;">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-4">
+            <div class="text-center mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-2" style="width:50px;height:50px;">
+                    <i class="bi bi-person-plus-fill text-primary fs-5"></i>
                 </div>
+                <h1 class="h4 fw-bold mb-1">Crear cuenta</h1>
+                <p class="text-muted small mb-0">Únete al Monitor IVIA</p>
+            </div>
 
-                {% if form.errors %}
-                <div class="alert alert-danger border-0 mb-4">
-                    {% for field in form %}
-                    {% for error in field.errors %}
-                    <p class="mb-1"><strong>{{ field.label }}:</strong> {{ error }}</p>
-                    {% endfor %}
-                    {% endfor %}
-                </div>
-                {% endif %}
+            {% if form.errors %}
+            <div class="alert alert-danger border-0 py-2 px-3 mb-3 small">
+                {% for field in form %}{% for error in field.errors %}
+                <p class="mb-0"><strong>{{ field.label }}:</strong> {{ error }}</p>
+                {% endfor %}{% endfor %}
+            </div>
+            {% endif %}
 
-
-                <form action="{% url 'users:signup' %}" method="POST" novalidate autocomplete="off">
-                    {% csrf_token %}
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold mb-2">{{ form.first_name.label }}</label>
-                            {{ form.first_name }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold mb-2">{{ form.last_name.label }}</label>
-                            {{ form.last_name }}
-                        </div>
+            <form action="{% url 'users:signup' %}" method="POST" novalidate autocomplete="off">
+                {% csrf_token %}
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label fw-semibold small mb-1">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
                     </div>
-                    <div class="mb-4">{{ form.email }}</div>
-                    <div class="mb-4">{{ form.username }}</div>
-                    <div class="row mb-4">
-                        <div class="col-md-6">{{ form.password1 }}</div>
-                        <div class="col-md-6">{{ form.password2 }}</div>
+                    <div class="col-6">
+                        <label class="form-label fw-semibold small mb-1">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
                     </div>
-                    <button type="submit" class="btn btn-success btn-lg w-100 fw-semibold shadow-sm py-2">
-                        <i class="bi bi-check-lg me-2"></i>Crear cuenta
-                    </button>
-                </form>
-
-                <div class="text-center mt-4">
-                    <a href="{% url 'users:signin' %}" class="text-primary fw-semibold">¿Ya tienes cuenta? Inicia
-                        sesión</a>
                 </div>
+                <div class="mb-2">
+                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold small mb-1">
+                        <i class="bi bi-envelope me-1"></i>{{ form.email.label }}
+                    </label>
+                    {{ form.email }}
+                </div>
+                <div class="mb-2">
+                    <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold small mb-1">
+                        <i class="bi bi-person me-1"></i>{{ form.username.label }}
+                    </label>
+                    {{ form.username }}
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold small mb-1">
+                            <i class="bi bi-lock-fill me-1"></i>{{ form.password1.label }}
+                        </label>
+                        {{ form.password1 }}
+                    </div>
+                    <div class="col-6">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold small mb-1">
+                            <i class="bi bi-lock-fill me-1"></i>{{ form.password2.label }}
+                        </label>
+                        {{ form.password2 }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-semibold py-2">
+                    <i class="bi bi-check-lg me-2"></i>Crear cuenta
+                </button>
+            </form>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'users:signin' %}" class="text-primary fw-semibold text-decoration-none small">
+                    ¿Ya tienes cuenta? Iniciar sesión
+                </a>
             </div>
         </div>
     </div>

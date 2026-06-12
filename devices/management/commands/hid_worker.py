@@ -139,10 +139,9 @@ class Command(BaseCommand):
                 packet[1] = int(cmd.device_id or 0) # ID del dispositivo
                 packet[2] = 2  # MSG_ID_CONFIG
 
-                # Obtener valores con defaults seguros
-                power = int(payload.get('power', 1))
-                freq = int(payload.get('freq', 2))
-                cant = int(payload.get('cant', 1))
+                power = max(0, min(1, int(payload.get('power', 1))))
+                freq = max(1, min(3600, int(payload.get('freq', 2))))
+                cant = max(1, min(255, int(payload.get('cant', 1))))
 
                 packet[3] = power
                 packet[4] = (freq >> 8) & 0xFF

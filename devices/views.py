@@ -1,12 +1,16 @@
+import csv
+import logging
+import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from .models import Device, UserDevice, DeviceCommand
 from . import services
-import csv
 from django.http import HttpResponse, JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -132,6 +136,9 @@ def device_add(request):
             user_device.notes = notes
             user_device.save()
 
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'ok', 'alias': alias, 'food_name': food_name, 'notes': notes})
+
         messages.success(request, 'Configuración del dispositivo guardada correctamente.')
         return redirect('devices:add')
 
@@ -226,7 +233,9 @@ def device_download_csv(request, device_id):
         )
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="{device_id}_{range_preset}.csv"'
+        safe_device_id = re.sub(r'[^\w-]', '', str(device_id))
+        safe_range = re.sub(r'[^\w-]', '', range_preset)
+        response['Content-Disposition'] = f'attachment; filename="{safe_device_id}_{safe_range}.csv"'
 
         writer = csv.writer(response)
         writer.writerow(['Fecha', 'Temperatura', 'Humedad', 'Presion', 'CO2', 'Peso', 'Etileno'])
@@ -305,9 +314,13 @@ def set_global_frequency(request):
     if request.method != 'POST':
         return redirect('devices:list')
     
-    frequency = int(request.POST.get('frequency', 2))
-    power = int(request.POST.get('power', 1))
-    
+    try:
+        frequency = max(1, min(3600, int(request.POST.get('frequency', 2))))
+        power = max(0, min(1, int(request.POST.get('power', 1))))
+    except (ValueError, TypeError):
+        messages.error(request, 'Valores de configuración inválidos.')
+        return redirect('devices:list')
+
     # Crear comando para cada dispositivo
     from .models import DeviceCommand
     for device in Device.objects.filter(is_active=True):
@@ -327,10 +340,14 @@ def set_device_frequency(request):
     if request.method != 'POST':
         return redirect('devices:list')
     
-    device_id = int(request.POST.get('device_id'))
-    frequency = int(request.POST.get('frequency', 2))
-    power = int(request.POST.get('power', 1))
-    
+    try:
+        device_id = int(request.POST.get('device_id'))
+        frequency = max(1, min(3600, int(request.POST.get('frequency', 2))))
+        power = max(0, min(1, int(request.POST.get('power', 1))))
+    except (ValueError, TypeError):
+        messages.error(request, 'Valores de configuración inválidos.')
+        return redirect('devices:list')
+
     from .models import DeviceCommand
     DeviceCommand.objects.create(
         device_id=device_id,
